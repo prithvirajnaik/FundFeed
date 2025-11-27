@@ -11,14 +11,17 @@ import Register from "./features/auth/pages/Register";
 import Feed from "./features/feed/pages/Feed"
 
 import PitchDetail from "./features/pitchDetail/pages/pitchDetail";
+import InvestorPostDetail from "./features/investor-posts/pages/InvestorPostDetail";
+
 import UploadPitch from "./features/upload/pages/UploadPitch";
+import CreateInvestorPost from "./features/upload/pages/CreateInvestorPost";
 import DeveloperProfile from "./features/profile/pages/DeveloperProfile";
 import InvestorProfile from "./features/profile/pages/InvestorProfile";
 import Saved from "./features/saved/pages/Saved";
 
 import RequestsInbox from "./features/requests/pages/RequestsInbox";
 import DeveloperDashboard from "./features/dashboard/pages/DeveloperDashboard";
-
+import EditPitch from "./features/dashboard/pages/EditPitch";
 // Placeholder pages
 // const Feed = () => <div className="p-10 text-xl">Feed Page</div>;
 // const Upload = () => <div className="p-10 text-xl">Upload Pitch</div>;
@@ -55,6 +58,21 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/investor-post/:id" element={
+            <ProtectedRoute>
+              <InvestorPostDetail />
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route
+            path="/create-post"
+            element={
+              <ProtectedRoute>
+                <CreateInvestorPost />
+              </ProtectedRoute>
+            }
+          />
 
           <Route
             path="/saved"
@@ -80,6 +98,17 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          <Route 
+            path="/edit/:id" 
+            element={ 
+              <ProtectedRoute>
+                <EditPitch />              
+              </ProtectedRoute>
+              } 
+            />
+
+
           <Route
             path="/developer/:id"
             element={

@@ -1,16 +1,21 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   Home,
   Upload as UploadIcon,
   LayoutDashboard,
   Inbox,
   UserCircle,
+  Bookmark,
+  PlusCircle
 } from "lucide-react";
 import useAuth from "../hooks/useAuth";
+
 export default function BottomNav() {
   const { user } = useAuth();
+  const location = useLocation();
+  const isActive = (path) => location.pathname.startsWith(path);
 
-  if (!user) return null; // no nav for guests
+  if (!user) return null;
 
   return (
     <nav
@@ -23,33 +28,58 @@ export default function BottomNav() {
       "
     >
       {/* Feed */}
-      <Link to="/feed" className="flex flex-col items-center text-gray-800">
-        <Home size={22} />
-        <span className="text-[10px]">Feed</span>
+      <Link to="/feed" className="flex flex-col items-center">
+        <Home size={22} className={isActive("/feed") ? "text-orange-600" : "text-gray-600"} />
+        <span className={`text-[10px] ${isActive("/feed") ? "text-orange-600" : "text-gray-600"}`}>
+          Feed
+        </span>
       </Link>
 
-      {/* Upload */}
-      <Link to="/upload" className="flex flex-col items-center text-gray-800">
-        <UploadIcon size={22} />
-        <span className="text-[10px]">Upload</span>
-      </Link>
-
-      {/* Dashboard (Developer only) */}
+      {/* UPLOAD (developer only) */}
       {user.role === "developer" && (
-        <Link
-          to="/dashboard"
-          className="flex flex-col items-center text-gray-800"
-        >
-          <LayoutDashboard size={22} />
-          <span className="text-[10px]">Dashboard</span>
+        <Link to="/upload" className="flex flex-col items-center">
+          <UploadIcon size={22} className={isActive("/upload") ? "text-orange-600" : "text-gray-600"} />
+          <span className={`text-[10px] ${isActive("/upload") ? "text-orange-600" : "text-gray-600"}`}>
+            Upload
+          </span>
         </Link>
       )}
 
-      {/* Requests (Developer only) */}
+      {/* Dashboard (developer only) */}
       {user.role === "developer" && (
-        <Link to="/requests" className="flex flex-col items-center text-gray-800">
-          <Inbox size={22} />
-          <span className="text-[10px]">Requests</span>
+        <Link to="/dashboard" className="flex flex-col items-center">
+          <LayoutDashboard size={22} className={isActive("/dashboard") ? "text-orange-600" : "text-gray-600"} />
+          <span className={`text-[10px] ${isActive("/dashboard") ? "text-orange-600" : "text-gray-600"}`}>
+            Dashboard
+          </span>
+        </Link>
+      )}
+
+      {/* Requests (developer only) */}
+      {user.role === "developer" && (
+        <Link to="/requests" className="flex flex-col items-center">
+          <Inbox size={22} className={isActive("/requests") ? "text-orange-600" : "text-gray-600"} />
+          <span className={`text-[10px] ${isActive("/requests") ? "text-orange-600" : "text-gray-600"}`}>
+            Requests
+          </span>
+        </Link>
+      )}
+
+      {/* Saved (investor only) */}
+      {user.role === "investor" && (
+        <Link to="/saved" className="flex flex-col items-center">
+          <Bookmark size={22} className={isActive("/saved") ? "text-orange-600" : "text-gray-600"} />
+          <span className={`text-[10px] ${isActive("/saved") ? "text-orange-600" : "text-gray-600"}`}>
+            Saved
+          </span>
+        </Link>
+      )}
+      {user.role === "investor" && (
+        <Link to="/create-post" className="flex flex-col items-center">
+          <PlusCircle size={22} className={isActive("/create-post") ? "text-orange-600" : "text-gray-600"} />
+          <span className={`text-[10px] ${isActive("/create-post") ? "text-orange-600" : "text-gray-600"}`}>
+            Post
+          </span>
         </Link>
       )}
 
@@ -60,10 +90,20 @@ export default function BottomNav() {
             ? `/developer/${user.id}`
             : `/investor/${user.id}`
         }
-        className="flex flex-col items-center text-gray-800"
+        className="flex flex-col items-center"
       >
-        <UserCircle size={22} />
-        <span className="text-[10px]">Profile</span>
+        <UserCircle size={22} className={
+          isActive("/developer") || isActive("/investor")
+            ? "text-orange-600"
+            : "text-gray-600"
+        } />
+        <span className={`text-[10px] ${
+          isActive("/developer") || isActive("/investor")
+            ? "text-orange-600"
+            : "text-gray-600"
+        }`}>
+          Profile
+        </span>
       </Link>
     </nav>
   );

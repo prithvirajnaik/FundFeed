@@ -1,62 +1,74 @@
 import { useState } from "react";
+
+import useAuth from '../../../hooks/useAuth'
 import useFeedData from "../hooks/useFeedData";
+import useInvestorPosts from "../../investor-posts/hooks/useInvestorPosts";
+
+import PitchCard from "../components/PitchCard";
+import InvestorPostCard from "../../investor-posts/components/InvestorPostCard";
 
 import SearchBar from "../components/SearchBar";
-import FeedFilters from "../components/FeedFilters";
-import PitchCard from "../components/PitchCard";
-
-/**
- * FEED PAGE (Frontend Only)
- * --------------------------
- * Combines:
- * - Search
- * - Filters
- * - Vertical scroll feed
- * Backend integration: replace mock hook with real API.
- */
 
 export default function Feed() {
-  const feed = useFeedData();
+  const { user } = useAuth();
+
+  const pitches = useFeedData();            // Developer videos
+  const investorPosts = useInvestorPosts(); // Investor funding posts
 
   const [search, setSearch] = useState("");
-  const [filters, setFilters] = useState({
-    tags: "",
-    stage: "",
-    location: "",
-    role: "",
-  });
 
-  const filteredFeed = feed.filter((pitch) => {
-    const matchesSearch =
-      pitch.title.toLowerCase().includes(search.toLowerCase()) ||
-      pitch.tags.join("").toLowerCase().includes(search.toLowerCase());
-
-    return matchesSearch;
-  });
+  const [tab, setTab] = useState(
+    user?.role === "developer" ? "investor_posts" : "pitches"
+  );
 
   return (
-<div className="px-3 sm:px-6 max-w-7xl mx-auto bg-[#f9f9f9] min-h-screen">
+    <div className="px-3 sm:px-6 max-w-7xl mx-auto bg-[#f9f9f9] min-h-screen">
 
-  <SearchBar search={search} setSearch={setSearch} />
+      <SearchBar search={search} setSearch={setSearch} />
 
-  {/* <FeedFilters filters={filters} setFilters={setFilters} /> */}
+      {/* FEED TAB SWITCH */}
+      <div className="flex gap-4 my-4">
+        <button
+          className={`px-3 py-1 rounded-lg ${
+            tab === "pitches" ? "text-orange-600 font-semibold" : "text-gray-600"
+          }`}
+          onClick={() => setTab("pitches")}
+        >
+          Pitches
+        </button>
 
-<div
-  className="
-    grid 
-    grid-cols-1 
-    sm:grid-cols-2 
-    lg:grid-cols-3              /* 🚀 MAX 3 COLUMNS */
-    gap- 0.5
-    auto-rows-auto
-  "
->
-    {filteredFeed.map((pitch) => (
-      <PitchCard key={pitch.id} pitch={pitch} />
-    ))}
-  </div>
+        <button
+          className={`px-3 py-1 rounded-lg ${
+            tab === "investor_posts" ? "text-orange-600 font-semibold" : "text-gray-600"
+          }`}
+          onClick={() => setTab("investor_posts")}
+        >
+          Investor Posts
+        </button>
+      </div>
 
-</div>
+      {/* GRID */}
+      <div
+        className="
+          grid 
+          grid-cols-1 
+          sm:grid-cols-2 
+          lg:grid-cols-3
+          gap-4
+        "
+      >
+        {/* PITCHES FEED */}
+        {tab === "pitches" &&
+          pitches.map((pitch) => (
+            <PitchCard key={pitch.id} pitch={pitch} />
+          ))}
 
+        {/* INVESTOR POSTS FEED */}
+        {tab === "investor_posts" &&
+          investorPosts.map((post) => (
+            <InvestorPostCard key={post.id} post={post} />
+          ))}
+      </div>
+    </div>
   );
 }

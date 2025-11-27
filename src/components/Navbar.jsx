@@ -1,23 +1,21 @@
-/**
- * FINAL NAVBAR:
- * - Desktop → full nav menu
- * - Mobile → only logo + logout (bottom nav handles navigation)
- */
-
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import useAuth from "../hooks/useAuth";
 import {
   Home,
   Upload as UploadIcon,
   LayoutDashboard,
   Inbox,
   User,
-  LogOut
+  Bookmark,
+  LogOut,
+  PlusCircle
 } from "lucide-react";
-
-import useAuth from "../hooks/useAuth";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
+  const location = useLocation();
+
+  const isActive = (path) => location.pathname.startsWith(path);
 
   return (
     <nav
@@ -29,89 +27,131 @@ export default function Navbar() {
         border-b border-gray-200
       "
     >
-      {/* LEFT — Logo */}
+      {/* LEFT: Logo */}
       <Link to="/" className="text-2xl font-bold text-orange-500">
         FundFeed
       </Link>
 
-      {/* DESKTOP NAV (md and above) */}
+      {/* DESKTOP NAV */}
       <div className="hidden md:flex items-center gap-6 text-[#0f0f0f]">
 
+        {/* GUEST (Desktop) */}
         {!user && (
           <>
-            <Link to="/login" className="hover:text-orange-500 transition">Login</Link>
-            <Link to="/register" className="hover:text-orange-500 transition">Register</Link>
+            <Link to="/login"
+              className={`${isActive("/login") ? "text-orange-600 font-semibold" : ""}`}>
+              Login
+            </Link>
+
+            <Link to="/register"
+              className={`${isActive("/register") ? "text-orange-600 font-semibold" : ""}`}>
+              Register
+            </Link>
           </>
         )}
 
+        {/* ------------------ DEVELOPER NAV ------------------ */}
         {user?.role === "developer" && (
           <>
-            <Link to="/feed" className="flex items-center gap-1 hover:text-orange-500 transition">
-              <Home size={18} /> Feed
+            <Link 
+              to="/feed"
+              className={`flex items-center gap-1
+                ${isActive("/feed") ? "text-orange-600 font-semibold" : ""}`}>
+              <Home size={18}/> Feed
             </Link>
 
-            <Link to="/upload" className="flex items-center gap-1 hover:text-orange-500 transition">
-              <UploadIcon size={18} /> Upload
+            <Link 
+              to="/upload"
+              className={`flex items-center gap-1
+                ${isActive("/upload") ? "text-orange-600 font-semibold" : ""}`}>
+              <UploadIcon size={18}/> Upload
             </Link>
 
-            <Link to="/dashboard" className="flex items-center gap-1 hover:text-orange-500 transition">
-              <LayoutDashboard size={18} /> Dashboard
+            <Link 
+              to="/dashboard"
+              className={`flex items-center gap-1
+                ${isActive("/dashboard") ? "text-orange-600 font-semibold" : ""}`}>
+              <LayoutDashboard size={18}/> Dashboard
             </Link>
 
-            <Link to="/requests" className="flex items-center gap-1 hover:text-orange-500 transition">
-              <Inbox size={18} /> Requests
+            <Link 
+              to="/requests"
+              className={`flex items-center gap-1
+                ${isActive("/requests") ? "text-orange-600 font-semibold" : ""}`}>
+              <Inbox size={18}/> Requests
             </Link>
 
-            <Link to={`/developer/${user.id}`} className="flex items-center gap-1 hover:text-orange-500 transition">
-              <User size={18} /> Profile
+            <Link 
+              to={`/developer/${user.id}`}
+              className={`flex items-center gap-1
+                ${isActive(`/developer/${user.id}`) ? "text-orange-600 font-semibold" : ""}`}>
+              <User size={18}/> Profile
             </Link>
           </>
         )}
 
-
+        {/* ------------------ INVESTOR NAV ------------------ */}
         {user?.role === "investor" && (
           <>
-            <Link to="/feed" className="hover:text-orange-500 transition">Feed</Link>
-            <Link to="/saved" className="hover:text-orange-500 transition">Saved</Link>
-            <Link to={`/investor/${user.id}`} className="hover:text-orange-500 transition">Profile</Link>
+            <Link 
+              to="/feed"
+              className={`flex items-center gap-1
+                ${isActive("/feed") ? "text-orange-600 font-semibold" : ""}`}>
+              <Home size={18}/> Feed
+            </Link>
+            <Link 
+              to="/create-post"
+              className={`flex items-center gap-1
+                ${isActive("/create-post") ? "text-orange-600 font-semibold" : ""}`}>
+              <PlusCircle size={18}/> Post
+            </Link>
+            <Link 
+              to="/saved"
+              className={`flex items-center gap-1
+                ${isActive("/saved") ? "text-orange-600 font-semibold" : ""}`}>
+              <Bookmark size={18}/> Saved
+            </Link>
+
+            <Link 
+              to={`/investor/${user.id}`}
+              className={`flex items-center gap-1
+                ${isActive(`/investor/${user.id}`) ? "text-orange-600 font-semibold" : ""}`}>
+              <User size={18}/> Profile
+            </Link>
           </>
         )}
 
-        {/* DESKTOP LOGOUT */}
+        {/* LOGOUT */}
         {user && (
           <button
             onClick={logout}
-            className="bg-orange-500 text-white px-4 py-1.5 rounded-lg hover:bg-orange-600 transition"
+            className="flex items-center gap-1 bg-orange-500 text-white px-4 py-1.5 rounded-lg hover:bg-orange-600 transition"
           >
-            Logout
+            <LogOut size={18}/> Logout
           </button>
         )}
       </div>
 
-      {/* MOBILE LOGOUT ICON */}
-    <div className="md:hidden flex gap-4 items-center">
+      {/* MOBILE RIGHT SIDE */}
+      <div className="md:hidden flex items-center gap-4">
 
-      {/* If NOT logged in → show login + register icons/text */}
-      {!user && (
-        <>
-          <Link to="/login" className="text-gray-800 text-sm font-medium">
-            Login
-          </Link>
-          <Link to="/register" className="text-gray-800 text-sm font-medium">
-            Register
-          </Link>
-        </>
-      )}
+        {!user && (
+          <>
+            <Link to="/login" className="text-gray-800 text-sm font-medium">
+              Login
+            </Link>
+            <Link to="/register" className="text-gray-800 text-sm font-medium">
+              Register
+            </Link>
+          </>
+        )}
 
-      {/* If logged in → show logout icon */}
-      {user && (
-        <button onClick={logout} className="text-gray-800">
-          <LogOut size={26} />
-        </button>
-      )}
-
-    </div>
-
+        {user && (
+          <button onClick={logout}>
+            <LogOut size={26} className="text-gray-800"/>
+          </button>
+        )}
+      </div>
     </nav>
   );
 }

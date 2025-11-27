@@ -1,21 +1,20 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import useAuth from "../../../hooks/useAuth";
-// import api from "../api/apiClient";
 
 import PitchRow from "../components/PitchRow";
 import PitchCardMobile from "../components/PitchCardMobile";
 
-import EditPitchModal from "../components/EditPitchModal";
 import DeletePitchModal from "../components/DeletePitchModal";
 
 export default function DeveloperDashboard() {
   const { user } = useAuth();
-  const [pitches, setPitches] = useState([]);
+  const navigate = useNavigate();
 
-  const [editData, setEditData] = useState(null);
+  const [pitches, setPitches] = useState([]);
   const [deleteId, setDeleteId] = useState(null);
-  // ✔ MOCK DATA (no backend)
+
+  // ✔ MOCK DATA (no backend yet)
   const mockPitches = [
     {
       id: "p1",
@@ -24,6 +23,10 @@ export default function DeveloperDashboard() {
       views: 1540,
       saves: 122,
       stage: "Seed",
+      tags: ["AI", "Fitness"],       // REQUIRED for edit page
+      description: "Short desc",
+      ask: "$20k",
+      videoUrl: "",                  // safe
     },
     {
       id: "p2",
@@ -32,6 +35,10 @@ export default function DeveloperDashboard() {
       views: 890,
       saves: 45,
       stage: "Pre-seed",
+      tags: ["Fintech"],
+      description: "Short desc",
+      ask: "$50k",
+      videoUrl: "",
     },
     {
       id: "p3",
@@ -40,34 +47,21 @@ export default function DeveloperDashboard() {
       views: 2200,
       saves: 340,
       stage: "Series A",
+      tags: ["Voice", "SaaS"],
+      description: "Short desc",
+      ask: "$10k",
+      videoUrl: "",
     },
   ];
-  // Fetch pitches for logged-in developer
+
+  // Load mock pitches
   useEffect(() => {
     if (!user) return;
-
-    // Replace with backend: /pitches/developer/:id
-    // api.get(`/pitches?developerId=${user.id}`).then(res => {
-    //   setPitches(res.data || []);
-    // });
-     setPitches(mockPitches);
-
+    setPitches(mockPitches);
   }, [user]);
 
-  const refresh = () => {
-    api.get(`/pitches?developerId=${user.id}`).then(res => {
-      setPitches(res.data || []);
-    });
-  };
-
-  const handleSaveEdit = async (updated) => {
-    await api.patch(`/pitches/${editData.id}`, updated);
-    setEditData(null);
-    refresh();
-  };
-
+  // DELETE HANDLER (mock)
   const handleDelete = async () => {
-    await api.delete(`/pitches/${deleteId}`);
     setPitches(prev => prev.filter(p => p.id !== deleteId));
     setDeleteId(null);
   };
@@ -75,7 +69,7 @@ export default function DeveloperDashboard() {
   return (
     <div className="max-w-6xl mx-auto p-4 sm:p-6 bg-[#f9f9f9] min-h-screen">
 
-      {/* TITLE + UPLOAD BUTTON */}
+      {/* HEADER */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl sm:text-3xl font-bold text-[#0f0f0f]">
           My Pitches
@@ -83,10 +77,7 @@ export default function DeveloperDashboard() {
 
         <Link
           to="/upload"
-          className="
-            bg-orange-600 text-white px-4 py-2 
-            rounded-lg font-semibold hover:bg-orange-700
-          "
+          className="bg-orange-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-orange-700"
         >
           + Upload New
         </Link>
@@ -106,7 +97,7 @@ export default function DeveloperDashboard() {
           <PitchRow
             key={pitch.id}
             pitch={pitch}
-            onEdit={() => setEditData(pitch)}
+            onEdit={() => navigate(`/edit/${pitch.id}`)}
             onDelete={() => setDeleteId(pitch.id)}
           />
         ))}
@@ -118,20 +109,11 @@ export default function DeveloperDashboard() {
           <PitchCardMobile
             key={pitch.id}
             pitch={pitch}
-            onEdit={() => setEditData(pitch)}
+            onEdit={() => navigate(`/edit/${pitch.id}`)}
             onDelete={() => setDeleteId(pitch.id)}
           />
         ))}
       </div>
-
-      {/* EDIT MODAL */}
-      {editData && (
-        <EditPitchModal
-          pitch={editData}
-          onClose={() => setEditData(null)}
-          onSave={handleSaveEdit}
-        />
-      )}
 
       {/* DELETE MODAL */}
       {deleteId && (
@@ -140,6 +122,7 @@ export default function DeveloperDashboard() {
           onConfirm={handleDelete}
         />
       )}
+
     </div>
   );
 }
