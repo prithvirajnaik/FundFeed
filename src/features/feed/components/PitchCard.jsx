@@ -4,34 +4,65 @@ import { Link } from "react-router-dom";
 
 export default function PitchCard({ pitch }) {
   return (
-     <Link to={`/pitch/${pitch.id}`}>
-    <div className="bg-white p-4 rounded-xl shadow">
-      
-      <VideoPreview src={pitch.videoUrl} thumbnail={pitch.thumbnail} />
+    <Link to={`/pitch/${pitch.id}`}>
+      <div
+        className="
+          bg-[#f9f9f9] 
+          p-2
+          rounded-xl overflow-hidden 
+          transition-all duration-200 
+          /* ⭐ Corners become sharp */
+          hover:bg-orange-50           /* ⭐ Transparent orange overlay */
+          hover:-translate-y-[2px]
+        "
+      >
+        {/* Thumbnail (16:9) */}
+        <div className="w-full aspect-video bg-[#f1f1f1]">
+          <VideoPreview src={pitch.videoUrl} thumbnail={pitch.thumbnail} />
+        </div>
 
-      <h2 className="mt-3 text-lg font-semibold">{pitch.title}</h2>
+        {/* Content */}
+        <div className="p-3 sm:p-4 flex flex-col gap-2 flex-1">
 
-      <div className="flex gap-2 flex-wrap mt-2">
-        {pitch.tags.map((tag) => (
-          <span 
-            key={tag}
-            className="bg-gold text-black px-2 py-1 rounded-md text-xs font-semibold"
-          >
-            {tag}
-          </span>
-        ))}
+          {/* Title */}
+          <h2 className="text-[15px] font-semibold text-[#0f0f0f] line-clamp-2 leading-snug h-[40px]">
+            {pitch.title}
+          </h2>
+
+          {/* Tags */}
+          <div className="flex gap-1 flex-wrap h-[28px] overflow-hidden">
+            {pitch.tags.slice(0, 3).map(tag => (
+              <span
+                key={tag}
+                className="
+                  bg-orange-200 text-orange-900 
+                  px-2 py-[2px] rounded-md 
+                  text-[10px] font-medium
+                "
+              >
+                {tag}
+              </span>
+            ))}
+
+            {pitch.tags.length > 3 && (
+              <span className="text-[10px] text-gray-600">
+                +{pitch.tags.length - 3}
+              </span>
+            )}
+          </div>
+
+          {/* Bottom Meta */}
+          <div className="flex justify-between items-center mt-auto text-[#606060] text-xs h-[20px]">
+            <span className="flex items-center gap-1">
+              <Eye size={14} /> {pitch.views}
+            </span>
+            <span className="flex items-center gap-1">
+              <Bookmark size={14} /> {pitch.saves}
+            </span>
+          </div>
+
+        </div>
       </div>
-
-      <div className="flex justify-between items-center mt-3 text-gray-600 text-sm">
-        <span className="flex items-center gap-1">
-          <Eye size={16} /> {pitch.views}
-        </span>
-        <span className="flex items-center gap-1">
-          <Bookmark size={16} /> {pitch.saves}
-        </span>
-      </div>
-
-    </div>
     </Link>
   );
 }

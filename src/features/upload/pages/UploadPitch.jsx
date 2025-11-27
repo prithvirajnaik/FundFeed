@@ -48,7 +48,7 @@ export default function UploadPitch() {
 
         <button
           type="submit"
-          className="w-full py-3 bg-accent text-white rounded-lg text-lg font-semibold hover:bg-opacity-90"
+          className="w-full py-3 bg-primary text-white rounded-lg text-lg font-semibold hover:bg-opacity-90"
         >
           Upload Pitch
         </button>

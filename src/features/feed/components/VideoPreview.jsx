@@ -14,7 +14,7 @@ export default function VideoPreview({ src, thumbnail }) {
 
   return (
     <div
-      className="relative w-full h-60 rounded-lg overflow-hidden bg-black"
+      className="relative w-full h-60 rounded-lg overflow-hidden bg-black transition-all duration-200 hover:rounded-none     "
       onMouseEnter={playPreview}
       onMouseLeave={stopPreview}
     >

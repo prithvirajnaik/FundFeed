@@ -1,6 +1,7 @@
 import AuthInput from "../components/AuthInput";
 import useAuthForm from "../hooks/useAuthForm";
 import useAuth from "../../../hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
 /**
  * Login Page (Frontend Only)
@@ -10,13 +11,15 @@ import useAuth from "../../../hooks/useAuth";
 export default function Login() {
   const { form, updateField } = useAuthForm();
   const { login } = useAuth();
-
+  const navigate = useNavigate();
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     // This creates a MOCK USER (backend-ready)
     const response = await login(form.email, form.password);
-
+    if(response){
+      navigate("/feed");
+    }
     console.log("LOGIN MOCK USER:", response);
   };
 

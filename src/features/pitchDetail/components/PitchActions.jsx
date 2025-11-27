@@ -1,35 +1,36 @@
-import { Bookmark, Eye } from "lucide-react";
-
-export default function PitchActions({ views, saves, onSave, onContact }) {
+export default function PitchActions({ saved, onSave, onContact }) {
   return (
-    <div className="mt-5 flex items-center justify-between">
+    <div className="mt-3 sm:mt-5 flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3">
 
-      <div className="flex items-center gap-5 text-gray-700">
-        <span className="flex items-center gap-1">
-          <Eye size={18} /> {views}
-        </span>
+      {/* ACTION BUTTONS */}
+      <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
 
-        <span className="flex items-center gap-1">
-          <Bookmark size={18} /> {saves}
-        </span>
-      </div>
-
-      <div className="flex gap-3">
+        {/* Save */}
         <button
           onClick={onSave}
-          className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-opacity-90"
+          className={`
+            w-full sm:w-auto px-4 py-2 rounded-lg transition font-medium
+            ${saved 
+              ? "bg-orange-500 text-white shadow-md hover:bg-orange-600" 
+              : "bg-gray-200 text-gray-900 hover:bg-gray-300"}
+          `}
         >
-          Save Pitch
+          {saved ? "Saved" : "Save Pitch"}
         </button>
 
+        {/* Contact */}
         <button
           onClick={onContact}
-          className="px-4 py-2 bg-accent text-white rounded-lg hover:bg-opacity-90"
+          className="
+            w-full sm:w-auto px-4 py-2 rounded-lg transition font-medium
+            bg-black text-white 
+            hover:bg-black/90
+          "
         >
           Contact Developer
         </button>
-      </div>
 
+      </div>
     </div>
   );
 }

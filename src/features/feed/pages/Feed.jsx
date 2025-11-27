@@ -35,18 +35,28 @@ export default function Feed() {
   });
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+<div className="px-3 sm:px-6 max-w-7xl mx-auto bg-[#f9f9f9] min-h-screen">
 
-      <SearchBar search={search} setSearch={setSearch} />
+  <SearchBar search={search} setSearch={setSearch} />
 
-      <FeedFilters filters={filters} setFilters={setFilters} />
+  {/* <FeedFilters filters={filters} setFilters={setFilters} /> */}
 
-      <div className="grid gap-6">
-        {filteredFeed.map((pitch) => (
-          <PitchCard key={pitch.id} pitch={pitch} />
-        ))}
-      </div>
+<div
+  className="
+    grid 
+    grid-cols-1 
+    sm:grid-cols-2 
+    lg:grid-cols-3              /* 🚀 MAX 3 COLUMNS */
+    gap- 0.5
+    auto-rows-auto
+  "
+>
+    {filteredFeed.map((pitch) => (
+      <PitchCard key={pitch.id} pitch={pitch} />
+    ))}
+  </div>
 
-    </div>
+</div>
+
   );
 }

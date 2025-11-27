@@ -3,7 +3,7 @@ import AuthInput from "../components/AuthInput";
 import RoleSelector from "../components/RoleSelector";
 import useAuthForm from "../hooks/useAuthForm";
 import useAuth from "../../../hooks/useAuth";
-
+import { useNavigate } from "react-router-dom";
 /**
  * Register Page
  * Calls AuthContext.register() to create mock user.
@@ -12,7 +12,7 @@ import useAuth from "../../../hooks/useAuth";
 export default function Register() {
   const { form, updateField } = useAuthForm();
   const [role, setRole] = useState(null);
-
+  const navigate = useNavigate();
   const { register } = useAuth();
 
   const handleSubmit = async (e) => {
@@ -20,6 +20,9 @@ export default function Register() {
 
     // This creates a MOCK USER (backend-ready)
     const response = await register(form.email, form.password, role);
+    if(response){
+      navigate("/feed")
+    }
 
     console.log("REGISTER MOCK USER:", response);
   };

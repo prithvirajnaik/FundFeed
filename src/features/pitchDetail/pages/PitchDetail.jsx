@@ -4,7 +4,6 @@ import usePitchDetail from "../hooks/usePitchDetail";
 
 import PitchMeta from "../components/PitchMeta";
 import PitchActions from "../components/PitchActions";
-import DeveloperCard from "../components/DeveloperCard";
 
 import ContactModal from "../../contact/components/ContachModal";
 import useContactModal from "../../contact/hooks/useContactModal";
@@ -16,13 +15,11 @@ export default function PitchDetail() {
   const pitch = usePitchDetail(id);
 
   const contact = useContactModal();
+  const { savePitch, savedPitches } = useAuth();
 
-  const { savePitch } = useAuth();
+  const isSaved = savedPitches?.includes(id);
 
-  const handleSave = () => {
-    console.log("SAVE CLICKED → backend integration later");
-    savePitch(pitch.id)
-  };
+  const handleSave = () => savePitch(pitch.id);
 
   const handleContactSubmit = (payload) => {
     console.log("CONTACT PAYLOAD → backend later", payload);
@@ -31,40 +28,66 @@ export default function PitchDetail() {
   if (!pitch) return <div className="p-10 text-center">Loading...</div>;
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-6xl mx-auto p-3 sm:p-6 bg-[#f9f9f9] min-h-screen">
 
-      {/* Video Player */}
-      <video
-        src={pitch.videoUrl}
-        controls
-        className="w-full rounded-xl shadow-lg"
-      ></video>
+      {/* GRID: mobile = 1 col, desktop = 2 cols */}
+      <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6">
 
-      {/* Metadata */}
-      <PitchMeta
-        title={pitch.title}
-        description={pitch.description}
-        tags={pitch.tags}
-      />
+        {/* LEFT COLUMN → VIDEO */}
+        <div className="w-full">
 
-      {/* Save + Contact + Metrics */}
-      <PitchActions
-        views={pitch.views}
-        saves={pitch.saves}
-        onSave={() => savePitch(pitch.id)}
-        onContact={contact.openModal}
-      />
+          <div className="w-full rounded-xl overflow-hidden bg-black/5">
+            <video
+              src={pitch.videoUrl}
+              controls
+              className="
+                w-full 
+                aspect-video 
+                rounded-xl 
+              "
+            ></video>
+          </div>
 
-      {/* Developer info */}
-      <DeveloperCard developer={pitch.developer} />
+        </div>
 
-            {/* CONTACT MODAL */}
+        {/* RIGHT COLUMN → META + ACTIONS */}
+        <div className="space-y-6">
+
+          {/* META CARD */}
+          <div className="bg-white rounded-xl p-4 sm:p-5 shadow-sm">
+            <PitchMeta
+              title={pitch.title}
+              description={pitch.description}
+              tags={pitch.tags}
+              developer={pitch.developer}
+              views={pitch.views}
+              saves={pitch.saves}
+            />
+          </div>
+
+          {/* ACTIONS CARD */}
+          <div className="bg-white rounded-xl p-4 shadow-sm">
+            <PitchActions
+              views={pitch.views}
+              saves={pitch.saves}
+              saved={isSaved}
+              onSave={handleSave}
+              onContact={contact.openModal}
+            />
+          </div>
+
+        </div>
+
+      </div>
+
+      {/* CONTACT MODAL */}
       <ContactModal
         open={contact.open}
         onClose={contact.closeModal}
         onSubmit={handleContactSubmit}
         developer={pitch.developer}
       />
+
     </div>
   );
 }

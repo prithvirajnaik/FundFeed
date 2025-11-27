@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 
 import Navbar from "./components/Navbar";
+import BottomNav from "./components/BottomNav";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 import Login from "./features/auth/pages/Login";
@@ -16,7 +17,7 @@ import InvestorProfile from "./features/profile/pages/InvestorProfile";
 import Saved from "./features/saved/pages/Saved";
 
 import RequestsInbox from "./features/requests/pages/RequestsInbox";
-
+import DeveloperDashboard from "./features/dashboard/pages/DeveloperDashboard";
 
 // Placeholder pages
 // const Feed = () => <div className="p-10 text-xl">Feed Page</div>;
@@ -30,7 +31,7 @@ function App() {
       <BrowserRouter>
         
         <Navbar />
-
+        <div className="pb-14">   
         <Routes>
           {/* Public routes */}
           <Route path="/login" element={<Login />} />
@@ -71,7 +72,14 @@ function App() {
               </ProtectedRoute>
             }
           />
-          
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <DeveloperDashboard />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/developer/:id"
             element={
@@ -98,8 +106,8 @@ function App() {
             }
           />
         </Routes>
-
-
+        </div>
+            <BottomNav />  
       </BrowserRouter>
     </AuthProvider>
   );
