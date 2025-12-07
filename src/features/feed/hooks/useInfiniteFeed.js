@@ -15,7 +15,7 @@ export default function useInfiniteFeed(limit = 8) {
     setLoading(true);
 
     try {
-      const res = await api.get(`/pitches?page=${page}&limit=${limit}`);
+      const res = await api.get(`/api/pitches?page=${page}&limit=${limit}`);
 
       const newData = res.data.data;
 

@@ -5,7 +5,7 @@ export default function usePitchDetail(id) {
   const [pitch, setPitch] = useState(null);
 
   useEffect(() => {
-    api.get(`/pitches/${id}/`).then(res => setPitch(res.data));
+    api.get(`/api/pitches/${id}/`).then(res => setPitch(res.data));
   }, [id]);
 
   return pitch;

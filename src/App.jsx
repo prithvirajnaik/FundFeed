@@ -14,7 +14,8 @@ import PitchDetail from "./features/pitchDetail/pages/pitchDetail";
 import InvestorPostDetail from "./features/investor-posts/pages/InvestorPostDetail";
 
 import UploadPitch from "./features/upload/pages/UploadPitch";
-import CreateInvestorPost from "./features/upload/pages/CreateInvestorPost";
+import InvestorPostsFeed from "./features/investor-posts/pages/InvestorPostsFeed";
+import CreateInvestorPost from "./features/investor-posts/pages/CreateInvestorPost";
 import DeveloperProfile from "./features/profile/pages/DeveloperProfile";
 import InvestorProfile from "./features/profile/pages/InvestorProfile";
 import Saved from "./features/saved/pages/Saved";
@@ -32,111 +33,121 @@ function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        
+
         <Navbar />
-        <div className="pb-14">   
-        <Routes>
-          {/* Public routes */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+        <div className="pb-14">
+          <Routes>
+            {/* Public routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
 
-          {/* Protected routes */}
-          <Route
-            path="/feed"
-            element={
-              <ProtectedRoute>
-                <Feed />
-              </ProtectedRoute>
-            }
-          />
+            {/* Protected routes */}
+            <Route
+              path="/feed"
+              element={
+                <ProtectedRoute>
+                  <Feed />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/upload"
-            element={
-              <ProtectedRoute>
-                <UploadPitch />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="/investor-post/:id" element={
-            <ProtectedRoute>
-              <InvestorPostDetail />
-              </ProtectedRoute>
-            } 
-          />
+            <Route
+              path="/upload"
+              element={
+                <ProtectedRoute>
+                  <UploadPitch />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/create-post"
-            element={
-              <ProtectedRoute>
-                <CreateInvestorPost />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/investor-posts"
+              element={
+                <ProtectedRoute>
+                  <InvestorPostsFeed />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/saved"
-            element={
+            <Route path="/investor-post/:id" element={
               <ProtectedRoute>
-                <Saved />
+                <InvestorPostDetail />
               </ProtectedRoute>
             }
-          />
-          <Route 
-            path="/pitch/:id"
-            element={
-              <ProtectedRoute>
-                <PitchDetail />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <DeveloperDashboard />
-              </ProtectedRoute>
-            }
-          />
+            />
 
-          <Route 
-            path="/edit/:id" 
-            element={ 
-              <ProtectedRoute>
-                <EditPitch />              
-              </ProtectedRoute>
-              } 
+            <Route
+              path="/investor-posts/create"
+              element={
+                <ProtectedRoute>
+                  <CreateInvestorPost />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/saved"
+              element={
+                <ProtectedRoute>
+                  <Saved />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/pitch/:id"
+              element={
+                <ProtectedRoute>
+                  <PitchDetail />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <DeveloperDashboard />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/edit/:id"
+              element={
+                <ProtectedRoute>
+                  <EditPitch />
+                </ProtectedRoute>
+              }
             />
 
 
-          <Route
-            path="/developer/:id"
-            element={
-              <ProtectedRoute>
-                <DeveloperProfile />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/investor/:id"
-            element={
-              <ProtectedRoute>
-                <InvestorProfile />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/developer/:id"
+              element={
+                <ProtectedRoute>
+                  <DeveloperProfile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/investor/:id"
+              element={
+                <ProtectedRoute>
+                  <InvestorProfile />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/requests"
-            element={
-              <ProtectedRoute>
-                <RequestsInbox />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
+            <Route
+              path="/requests"
+              element={
+                <ProtectedRoute>
+                  <RequestsInbox />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
         </div>
-            <BottomNav />  
+        <BottomNav />
       </BrowserRouter>
     </AuthProvider>
   );

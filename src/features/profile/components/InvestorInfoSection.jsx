@@ -1,26 +1,37 @@
 export default function InvestorInfoSection({ profile }) {
   return (
-    <div className="bg-white p-4 rounded-xl shadow mt-6 space-y-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
 
-      <div>
-        <h2 className="text-xl font-semibold">Firm</h2>
-        <p className="text-gray-700">
+      {/* Firm */}
+      <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+        <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">
+          Firm
+        </h3>
+        <p className="text-gray-900 font-medium text-lg">
           {profile.firm || "Independent Investor"}
         </p>
       </div>
 
-      <div>
-        <h2 className="text-xl font-semibold">Investor Type</h2>
-        <p className="text-gray-700">{profile.type}</p>
+      {/* Type */}
+      <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+        <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">
+          Investor Type
+        </h3>
+        <p className="text-gray-900 font-medium text-lg">
+          {profile.type}
+        </p>
       </div>
 
-      <div>
-        <h2 className="text-xl font-semibold">Preferred Funding Stages</h2>
-        <div className="flex gap-2 flex-wrap mt-1">
+      {/* Stages */}
+      <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+        <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+          Preferred Stages
+        </h3>
+        <div className="flex gap-2 flex-wrap">
           {profile.stages.map((stage) => (
             <span
               key={stage}
-              className="px-2 py-1 bg-gold rounded-md text-sm"
+              className="px-3 py-1 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700"
             >
               {stage}
             </span>
@@ -28,13 +39,16 @@ export default function InvestorInfoSection({ profile }) {
         </div>
       </div>
 
-      <div>
-        <h2 className="text-xl font-semibold">Sectors of Interest</h2>
-        <div className="flex gap-2 flex-wrap mt-1">
+      {/* Sectors */}
+      <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+        <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+          Sectors of Interest
+        </h3>
+        <div className="flex gap-2 flex-wrap">
           {profile.sectors.map((sec) => (
             <span
               key={sec}
-              className="px-2 py-1 bg-accent text-white rounded-md text-sm"
+              className="px-3 py-1 bg-orange-100 text-orange-800 rounded-lg text-sm font-medium"
             >
               {sec}
             </span>
@@ -42,9 +56,12 @@ export default function InvestorInfoSection({ profile }) {
         </div>
       </div>
 
-      <div>
-        <h2 className="text-xl font-semibold">Preferred Contact</h2>
-        <p className="text-gray-700 capitalize">
+      {/* Contact */}
+      <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 md:col-span-2">
+        <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">
+          Preferred Contact Method
+        </h3>
+        <p className="text-gray-900 font-medium capitalize">
           {profile.contactPreference}
         </p>
       </div>

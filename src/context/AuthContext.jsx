@@ -1,7 +1,9 @@
-import { createContext, useState, useEffect } from "react";
+import { createContext, useState, useEffect, useContext } from "react";
 import api from "../api/apiClient";
 
 export const AuthContext = createContext();
+
+export const useAuth = () => useContext(AuthContext);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -41,7 +43,7 @@ export function AuthProvider({ children }) {
   // Fetch backend user + saved pitches
   // --------------------------------------------
   const fetchMe = async (token) => {
-    try   {
+    try {
       const res = await api.get("/auth/me/");
       saveUser({ ...res.data, access: token });
 
@@ -58,7 +60,7 @@ export function AuthProvider({ children }) {
   // --------------------------------------------
   const loadSavedPitches = async () => {
     try {
-      const res = await api.get("/pitches/saved/");
+      const res = await api.get("/api/pitches/saved/");
       const ids = res.data.map((item) => item.pitch.id);
 
       setUser((prev) => {
@@ -124,7 +126,7 @@ export function AuthProvider({ children }) {
   // --------------------------------------------
   const savePitch = async (pitchId) => {
     try {
-      await api.post(`/pitches/${pitchId}/save/`);
+      await api.post(`/api/pitches/${pitchId}/save/`);
 
       // Update UI immediately
       setUser((prev) => {
@@ -148,7 +150,7 @@ export function AuthProvider({ children }) {
   // --------------------------------------------
   const removeSavedPitch = async (pitchId) => {
     try {
-      await api.delete(`/pitches/${pitchId}/unsave/`);
+      await api.delete(`/api/pitches/${pitchId}/unsave/`);
 
       setUser((prev) => {
         const updated = {
@@ -170,34 +172,34 @@ export function AuthProvider({ children }) {
     (user?.savedPitches || []).includes(pitchId);
 
   // --------------------------------------------
-const toggleSavePitch = async (pitchId) => {
-  const alreadySaved = isSaved(pitchId);
+  const toggleSavePitch = async (pitchId) => {
+    const alreadySaved = isSaved(pitchId);
 
-  try {
-    if (alreadySaved) {
-      await api.delete(`/pitches/${pitchId}/unsave/`);
-    } else {
-      await api.post(`/pitches/${pitchId}/save/`);
+    try {
+      if (alreadySaved) {
+        await api.delete(`/api/pitches/${pitchId}/unsave/`);
+      } else {
+        await api.post(`/api/pitches/${pitchId}/save/`);
+      }
+
+      setUser((prev) => {
+        const updated = {
+          ...prev,
+          savedPitches: alreadySaved
+            ? prev.savedPitches.filter((id) => id !== pitchId)
+            : [...prev.savedPitches, pitchId],
+        };
+
+        localStorage.setItem("fundfeed_user", JSON.stringify(updated));
+        return updated;
+      });
+
+      return { success: true };
+    } catch (err) {
+      console.error("ToggleSave Error:", err.response?.data);
+      return { success: false };
     }
-
-    setUser((prev) => {
-      const updated = {
-        ...prev,
-        savedPitches: alreadySaved
-          ? prev.savedPitches.filter((id) => id !== pitchId)
-          : [...prev.savedPitches, pitchId],
-      };
-
-      localStorage.setItem("fundfeed_user", JSON.stringify(updated));
-      return updated;
-    });
-
-    return { success: true };
-  } catch (err) {
-    console.error("ToggleSave Error:", err.response?.data);
-    return { success: false };
-  }
-};
+  };
 
   return (
     <AuthContext.Provider

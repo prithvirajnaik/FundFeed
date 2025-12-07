@@ -2,7 +2,7 @@ import api from "../../../api/apiClient";
 
 export async function uploadPitch(formData) {
   try {
-    const res = await api.post("/pitches/", formData, {
+    const res = await api.post("/api/pitches/", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },

@@ -6,7 +6,8 @@ import {
   Inbox,
   UserCircle,
   Bookmark,
-  PlusCircle
+  PlusCircle,
+  Briefcase
 } from "lucide-react";
 import useAuth from "../hooks/useAuth";
 
@@ -45,6 +46,16 @@ export default function BottomNav() {
         </Link>
       )}
 
+      {/* Investor Posts (developer only) */}
+      {user.role === "developer" && (
+        <Link to="/investor-posts" className="flex flex-col items-center">
+          <Briefcase size={22} className={isActive("/investor-posts") ? "text-orange-600" : "text-gray-600"} />
+          <span className={`text-[10px] ${isActive("/investor-posts") ? "text-orange-600" : "text-gray-600"}`}>
+            Inv. Posts
+          </span>
+        </Link>
+      )}
+
       {/* Dashboard (developer only) */}
       {user.role === "developer" && (
         <Link to="/dashboard" className="flex flex-col items-center">
@@ -65,6 +76,16 @@ export default function BottomNav() {
         </Link>
       )}
 
+      {/* Saved (developer only) */}
+      {user.role === "developer" && (
+        <Link to="/saved" className="flex flex-col items-center">
+          <Bookmark size={22} className={isActive("/saved") ? "text-orange-600" : "text-gray-600"} />
+          <span className={`text-[10px] ${isActive("/saved") ? "text-orange-600" : "text-gray-600"}`}>
+            Saved
+          </span>
+        </Link>
+      )}
+
       {/* Saved (investor only) */}
       {user.role === "investor" && (
         <Link to="/saved" className="flex flex-col items-center">
@@ -75,9 +96,9 @@ export default function BottomNav() {
         </Link>
       )}
       {user.role === "investor" && (
-        <Link to="/create-post" className="flex flex-col items-center">
-          <PlusCircle size={22} className={isActive("/create-post") ? "text-orange-600" : "text-gray-600"} />
-          <span className={`text-[10px] ${isActive("/create-post") ? "text-orange-600" : "text-gray-600"}`}>
+        <Link to="/investor-posts/create" className="flex flex-col items-center">
+          <PlusCircle size={22} className={isActive("/investor-posts/create") ? "text-orange-600" : "text-gray-600"} />
+          <span className={`text-[10px] ${isActive("/investor-posts/create") ? "text-orange-600" : "text-gray-600"}`}>
             Post
           </span>
         </Link>
@@ -97,11 +118,10 @@ export default function BottomNav() {
             ? "text-orange-600"
             : "text-gray-600"
         } />
-        <span className={`text-[10px] ${
-          isActive("/developer") || isActive("/investor")
-            ? "text-orange-600"
-            : "text-gray-600"
-        }`}>
+        <span className={`text-[10px] ${isActive("/developer") || isActive("/investor")
+          ? "text-orange-600"
+          : "text-gray-600"
+          }`}>
           Profile
         </span>
       </Link>

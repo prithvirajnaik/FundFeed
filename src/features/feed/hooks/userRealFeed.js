@@ -5,7 +5,7 @@ export default function useRealFeed() {
   const [feed, setFeed] = useState([]);
 
   useEffect(() => {
-    api.get("/pitches/")
+    api.get("/api/pitches/")
       .then((res) => {
         console.log("PITCH FEED:", res.data);
         setFeed(res.data.results || []);   // ✅ FIX
