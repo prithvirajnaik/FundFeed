@@ -1,36 +1,35 @@
-/**
- * AuthContext
- * Handles:
- * - user global state
- * - login / register placeholders
- * - backend-ready structure
- * - localStorage persistence
- */
-
 import { createContext, useState, useEffect } from "react";
-import { loginApi, registerApi } from "../features/auth/api/authApi";
+import api from "../api/apiClient";
 
 export const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null); // { email, role, token }
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Load stored user from localStorage
+  // --------------------------------------------
+  // Load stored user on startup + validate token
+  // --------------------------------------------
   useEffect(() => {
     const stored = localStorage.getItem("fundfeed_user");
-    if (stored) setUser(JSON.parse(stored));
-    setLoading(false);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      setUser(parsed);
+
+      setTimeout(() => {
+        fetchMe(parsed.access); // validate token, sync backend user
+      }, 50);
+    } else {
+      setLoading(false);
+    }
   }, []);
 
-  // const saveUser = (userData) => {
-  //   setUser(userData);
-  //   localStorage.setItem("fundfeed_user", JSON.stringify(userData));
-  // };
-
+  // --------------------------------------------
+  // Save user to state + localStorage
+  // --------------------------------------------
   const saveUser = (userData) => {
     const updated = {
-      savedPitches: user?.savedPitches || [],  // keep saved pitches
+      savedPitches: userData.savedPitches || user?.savedPitches || [],
       ...userData,
     };
 
@@ -38,82 +37,185 @@ export function AuthProvider({ children }) {
     localStorage.setItem("fundfeed_user", JSON.stringify(updated));
   };
 
-  /**
-   * LOGIN FUNCTION (now backend-ready)
-   * ---------------------------------
-   * Calls loginApi() which later will call backend.
-   * Right now, still uses mock response from loginApi().
-   */
+  // --------------------------------------------
+  // Fetch backend user + saved pitches
+  // --------------------------------------------
+  const fetchMe = async (token) => {
+    try   {
+      const res = await api.get("/auth/me/");
+      saveUser({ ...res.data, access: token });
+
+      await loadSavedPitches();
+    } catch (err) {
+      console.warn("Token invalid:", err);
+    }
+
+    setLoading(false);
+  };
+
+  // --------------------------------------------
+  // Load saved pitches from backend
+  // --------------------------------------------
+  const loadSavedPitches = async () => {
+    try {
+      const res = await api.get("/pitches/saved/");
+      const ids = res.data.map((item) => item.pitch.id);
+
+      setUser((prev) => {
+        const updated = { ...prev, savedPitches: ids };
+        localStorage.setItem("fundfeed_user", JSON.stringify(updated));
+        return updated;
+      });
+    } catch (err) {
+      console.warn("Couldn't load saved pitches:", err);
+    }
+  };
+
+  // --------------------------------------------
+  // LOGIN
+  // --------------------------------------------
   const login = async (email, password) => {
     try {
-      const response = await loginApi(email, password);
+      const res = await api.post("/auth/login/", { email, password });
 
-      if (!response.success) throw new Error(response.message);
+      saveUser({
+        ...res.data.user,
+        access: res.data.tokens.access,
+        refresh: res.data.tokens.refresh,
+      });
 
-      saveUser(response.user);
-      return response;
+      await loadSavedPitches();
+
+      return { success: true };
     } catch (err) {
-      console.error("Login Error:", err);
-      return { success: false, message: err.message };
+      console.error("Login Error:", err.response?.data);
+      return { success: false, message: "Login failed" };
     }
   };
 
-  /**
-   * REGISTER FUNCTION (backend-ready)
-   */
-  const register = async (email, password, role) => {
+  // --------------------------------------------
+  // REGISTER
+  // --------------------------------------------
+  const register = async (email, password, role, username) => {
     try {
-      const response = await registerApi(email, password, role);
+      const res = await api.post("/auth/register/", {
+        email,
+        password,
+        role,
+        username,
+      });
 
-      if (!response.success) throw new Error(response.message);
+      saveUser({
+        ...res.data.user,
+        access: res.data.tokens.access,
+        refresh: res.data.tokens.refresh,
+      });
 
-      saveUser(response.user);
-      return response;
+      await loadSavedPitches();
+      return { success: true };
     } catch (err) {
-      console.error("Register Error:", err);
-      return { success: false, message: err.message };
+      console.error("Register Error:", err.response?.data);
+      return { success: false, message: "Registration failed" };
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem("fundfeed_user");
+  // --------------------------------------------
+  // SAVE PITCH
+  // --------------------------------------------
+  const savePitch = async (pitchId) => {
+    try {
+      await api.post(`/pitches/${pitchId}/save/`);
+
+      // Update UI immediately
+      setUser((prev) => {
+        const updated = {
+          ...prev,
+          savedPitches: [...new Set([...(prev?.savedPitches || []), pitchId])],
+        };
+        localStorage.setItem("fundfeed_user", JSON.stringify(updated));
+        return updated;
+      });
+
+      return { success: true };
+    } catch (err) {
+      console.error("SavePitch Error:", err.response?.data);
+      return { success: false };
+    }
   };
 
-  const savePitch = (pitchId) => {
-    if (!user) return;
+  // --------------------------------------------
+  // UNSAVE PITCH
+  // --------------------------------------------
+  const removeSavedPitch = async (pitchId) => {
+    try {
+      await api.delete(`/pitches/${pitchId}/unsave/`);
 
-    const updated = {
-      ...user,
-      savedPitches: [...new Set([...(user.savedPitches || []), pitchId])]
-    };
+      setUser((prev) => {
+        const updated = {
+          ...prev,
+          savedPitches: prev.savedPitches.filter((id) => id !== pitchId),
+        };
+        localStorage.setItem("fundfeed_user", JSON.stringify(updated));
+        return updated;
+      });
 
-    setUser(updated);
-    localStorage.setItem("fundfeed_user", JSON.stringify(updated));
+      return { success: true };
+    } catch (err) {
+      console.error("Unsave Error:", err.response?.data);
+      return { success: false };
+    }
   };
 
-const removeSavedPitch = (pitchId) => {
-  if (!user) return;
+  const isSaved = (pitchId) =>
+    (user?.savedPitches || []).includes(pitchId);
 
-  const updated = {
-    ...user,
-    savedPitches: (user.savedPitches || []).filter(
-      (id) => String(id) !== String(pitchId)
-    )
-  };
+  // --------------------------------------------
+const toggleSavePitch = async (pitchId) => {
+  const alreadySaved = isSaved(pitchId);
 
-  setUser(updated);
-  localStorage.setItem("fundfeed_user", JSON.stringify(updated));
+  try {
+    if (alreadySaved) {
+      await api.delete(`/pitches/${pitchId}/unsave/`);
+    } else {
+      await api.post(`/pitches/${pitchId}/save/`);
+    }
+
+    setUser((prev) => {
+      const updated = {
+        ...prev,
+        savedPitches: alreadySaved
+          ? prev.savedPitches.filter((id) => id !== pitchId)
+          : [...prev.savedPitches, pitchId],
+      };
+
+      localStorage.setItem("fundfeed_user", JSON.stringify(updated));
+      return updated;
+    });
+
+    return { success: true };
+  } catch (err) {
+    console.error("ToggleSave Error:", err.response?.data);
+    return { success: false };
+  }
 };
 
-
-  const isSaved = (pitchId) => {
-    return (user?.savedPitches || []).includes(pitchId);
-  };
-
-
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, loading, savePitch,removeSavedPitch,isSaved }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        login,
+        register,
+        logout: () => {
+          setUser(null);
+          localStorage.removeItem("fundfeed_user");
+        },
+        loading,
+        savePitch,
+        removeSavedPitch,
+        toggleSavePitch,
+        isSaved,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

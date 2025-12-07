@@ -1,7 +1,8 @@
 import { useState } from "react";
 
 import useAuth from '../../../hooks/useAuth'
-import useFeedData from "../hooks/useFeedData";
+// import useFeedData from "../hooks/useFeedData";
+import useRealFeed from "../hooks/userRealFeed";
 import useInvestorPosts from "../../investor-posts/hooks/useInvestorPosts";
 
 import PitchCard from "../components/PitchCard";
@@ -12,7 +13,7 @@ import SearchBar from "../components/SearchBar";
 export default function Feed() {
   const { user } = useAuth();
 
-  const pitches = useFeedData();            // Developer videos
+  const pitches = useRealFeed();            // Developer videos
   const investorPosts = useInvestorPosts(); // Investor funding posts
 
   const [search, setSearch] = useState("");

@@ -1,4 +1,5 @@
 import { useParams } from "react-router-dom";
+import { useState, useEffect } from "react";
 
 import usePitchDetail from "../hooks/usePitchDetail";
 
@@ -7,53 +8,60 @@ import PitchActions from "../components/PitchActions";
 
 import ContactModal from "../../contact/components/ContachModal";
 import useContactModal from "../../contact/hooks/useContactModal";
+import Toast from "../../../components/Toast";
 
 import useAuth from "../../../hooks/useAuth";
 
 export default function PitchDetail() {
   const { id } = useParams();
-  const pitch = usePitchDetail(id);
+  const initialPitch = usePitchDetail(id);
 
+  const [pitch, setPitch] = useState(null);
   const contact = useContactModal();
-  const { savePitch, savedPitches } = useAuth();
 
-  const isSaved = savedPitches?.includes(id);
+  const { isSaved, toggleSavePitch } = useAuth();
+const [toast, setToast] = useState(null);
 
-  const handleSave = () => savePitch(pitch.id);
-
-  const handleContactSubmit = (payload) => {
-    console.log("CONTACT PAYLOAD → backend later", payload);
-  };
+  // Sync when API loads
+  useEffect(() => {
+    if (initialPitch) setPitch(initialPitch);
+  }, [initialPitch]);
 
   if (!pitch) return <div className="p-10 text-center">Loading...</div>;
 
+const handleSave = async () => {
+  const wasSaved = isSaved(pitch.id);
+
+  await toggleSavePitch(pitch.id);
+
+  // Live update count
+  setPitch((prev) => ({
+    ...prev,
+    saves: wasSaved ? prev.saves - 1 : prev.saves + 1,
+  }));
+
+  // Toast
+  setToast(wasSaved ? "Removed from saved" : "Pitch Saved!");
+};
+
+
   return (
     <div className="max-w-6xl mx-auto p-3 sm:p-6 bg-[#f9f9f9] min-h-screen">
-
-      {/* GRID: mobile = 1 col, desktop = 2 cols */}
       <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6">
 
-        {/* LEFT COLUMN → VIDEO */}
+        {/* VIDEO */}
         <div className="w-full">
-
           <div className="w-full rounded-xl overflow-hidden bg-black/5">
             <video
-              src={pitch.videoUrl}
+              src={pitch.video_url}
               controls
-              className="
-                w-full 
-                aspect-video 
-                rounded-xl 
-              "
+              className="w-full aspect-video rounded-xl"
             ></video>
           </div>
-
         </div>
 
-        {/* RIGHT COLUMN → META + ACTIONS */}
+        {/* META + ACTIONS */}
         <div className="space-y-6">
-
-          {/* META CARD */}
           <div className="bg-white rounded-xl p-4 sm:p-5 shadow-sm">
             <PitchMeta
               title={pitch.title}
@@ -65,17 +73,14 @@ export default function PitchDetail() {
             />
           </div>
 
-          {/* ACTIONS CARD */}
           <div className="bg-white rounded-xl p-4 shadow-sm">
             <PitchActions
-              views={pitch.views}
+              saved={isSaved(pitch.id)}
               saves={pitch.saves}
-              saved={isSaved}
               onSave={handleSave}
               onContact={contact.openModal}
             />
           </div>
-
         </div>
 
       </div>
@@ -84,9 +89,10 @@ export default function PitchDetail() {
       <ContactModal
         open={contact.open}
         onClose={contact.closeModal}
-        onSubmit={handleContactSubmit}
+        onSubmit={(payload) => console.log("CONTACT →", payload)}
         developer={pitch.developer}
       />
+      {toast && <Toast message={toast} onClose={() => setToast(null)} />}
 
     </div>
   );

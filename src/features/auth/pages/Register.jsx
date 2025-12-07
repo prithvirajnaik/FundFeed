@@ -4,27 +4,35 @@ import RoleSelector from "../components/RoleSelector";
 import useAuthForm from "../hooks/useAuthForm";
 import useAuth from "../../../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
-/**
- * Register Page
- * Calls AuthContext.register() to create mock user.
- */
 
 export default function Register() {
   const { form, updateField } = useAuthForm();
   const [role, setRole] = useState(null);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
   const { register } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
 
-    // This creates a MOCK USER (backend-ready)
-    const response = await register(form.email, form.password, role);
-    if(response){
-      navigate("/feed")
+    if (!role) {
+      setError("Please select a role");
+      return;
     }
 
-    console.log("REGISTER MOCK USER:", response);
+    const response = await register(
+      form.email,
+      form.password,
+      role,
+      form.username
+    );
+
+    if (response.success) {
+      navigate("/feed");
+    } else {
+      setError(response.message || "Registration failed");
+    }
   };
 
   return (
@@ -35,14 +43,29 @@ export default function Register() {
       >
         <h1 className="text-2xl font-bold mb-4">Create Account</h1>
 
+        {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
+
+        {/* USERNAME */}
         <AuthInput
-          label="Email"
-          type="email"
-          placeholder="Enter your email"
-          value={form.email}
-          onChange={(val) => updateField("email", val)}
+          label="Username"
+          type="text"
+          placeholder="Choose a username"
+          value={form.username}
+          onChange={(val) => updateField("username", val)}
         />
 
+        {/* EMAIL */}
+        <div className="mt-3">
+          <AuthInput
+            label="Email"
+            type="email"
+            placeholder="Enter your email"
+            value={form.email}
+            onChange={(val) => updateField("email", val)}
+          />
+        </div>
+
+        {/* PASSWORD */}
         <div className="mt-3">
           <AuthInput
             label="Password"
@@ -53,10 +76,12 @@ export default function Register() {
           />
         </div>
 
+        {/* ROLE */}
         <div className="mt-4">
           <RoleSelector selectedRole={role} setSelectedRole={setRole} />
         </div>
 
+        {/* SUBMIT */}
         <button
           type="submit"
           disabled={!role}

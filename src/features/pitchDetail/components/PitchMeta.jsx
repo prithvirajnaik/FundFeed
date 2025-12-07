@@ -1,6 +1,12 @@
 import { Link } from "react-router-dom";
 import { Eye, Bookmark } from "lucide-react";
 
+const safeNum = (value) => {
+  if (value === null || value === undefined) return "0";
+  const num = Number(value);
+  return isNaN(num) ? "0" : num.toLocaleString();
+};
+
 export default function PitchMeta({ title, description, tags, developer, views, saves }) {
   return (
     <div className="space-y-5">
@@ -24,14 +30,14 @@ export default function PitchMeta({ title, description, tags, developer, views, 
           "
         >
           <img
-            src={developer.avatar}
+            src={developer.avatar_url || "/default-avatar.png"}
             className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover"
             alt="developer avatar"
           />
 
           <div className="flex flex-col">
             <span className="font-semibold text-[#0f0f0f]">
-              {developer.name}
+              {developer.username || developer.name}
             </span>
 
             <span className="text-sm text-gray-600">
@@ -50,11 +56,11 @@ export default function PitchMeta({ title, description, tags, developer, views, 
       {/* Views + Saves */}
       <div className="flex items-center gap-5 text-gray-700 text-sm sm:text-base">
         <span className="flex items-center gap-1">
-          <Eye size={18} /> {views.toLocaleString()}
+          <Eye size={18} /> {safeNum(views)}
         </span>
 
         <span className="flex items-center gap-1">
-          <Bookmark size={18} /> {saves.toLocaleString()}
+          <Bookmark size={18} /> {safeNum(saves)}
         </span>
       </div>
 
@@ -65,7 +71,7 @@ export default function PitchMeta({ title, description, tags, developer, views, 
 
       {/* Tags */}
       <div className="flex flex-wrap gap-2 mt-1">
-        {tags.map((tag) => (
+        {tags?.map((tag) => (
           <span
             key={tag}
             className="

@@ -18,7 +18,7 @@ export default function PitchCard({ pitch }) {
       >
         {/* Thumbnail (16:9) */}
         <div className="w-full aspect-video bg-[#f1f1f1]">
-          <VideoPreview src={pitch.videoUrl} thumbnail={pitch.thumbnail} />
+          <VideoPreview src={pitch.video_url} thumbnail={pitch.thumbnail_url} />
         </div>
 
         {/* Content */}

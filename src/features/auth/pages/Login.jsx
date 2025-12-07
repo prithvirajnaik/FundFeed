@@ -1,26 +1,28 @@
+import { useState } from "react";
 import AuthInput from "../components/AuthInput";
 import useAuthForm from "../hooks/useAuthForm";
 import useAuth from "../../../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 
-/**
- * Login Page (Frontend Only)
- * Calls AuthContext.login() to create mock user.
- */
-
 export default function Login() {
   const { form, updateField } = useAuthForm();
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  const [error, setError] = useState("");
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
 
-    // This creates a MOCK USER (backend-ready)
+    // Call Django login through AuthContext
     const response = await login(form.email, form.password);
-    if(response){
+
+    if (response.success) {
       navigate("/feed");
+    } else {
+      setError(response.message || "Invalid email or password");
     }
-    console.log("LOGIN MOCK USER:", response);
   };
 
   return (
@@ -30,6 +32,8 @@ export default function Login() {
         className="bg-white p-6 rounded-lg shadow-md w-full max-w-sm"
       >
         <h1 className="text-2xl font-bold mb-4">Login</h1>
+
+        {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
 
         <AuthInput
           label="Email"
