@@ -21,13 +21,8 @@ import InvestorProfile from "./features/profile/pages/InvestorProfile";
 import Saved from "./features/saved/pages/Saved";
 
 import RequestsInbox from "./features/requests/pages/RequestsInbox";
-import DeveloperDashboard from "./features/dashboard/pages/DeveloperDashboard";
+import DashboardRouter from "./features/dashboard/pages/DashboardRouter";
 import EditPitch from "./features/dashboard/pages/EditPitch";
-// Placeholder pages
-// const Feed = () => <div className="p-10 text-xl">Feed Page</div>;
-// const Upload = () => <div className="p-10 text-xl">Upload Pitch</div>;
-// const Saved = () => <div className="p-10 text-xl">Saved Pitches</div>;
-const Profile = () => <div className="p-10 text-xl">Profile</div>;
 
 function App() {
   return (
@@ -101,11 +96,12 @@ function App() {
                 </ProtectedRoute>
               }
             />
+
             <Route
               path="/dashboard"
               element={
                 <ProtectedRoute>
-                  <DeveloperDashboard />
+                  <DashboardRouter />
                 </ProtectedRoute>
               }
             />

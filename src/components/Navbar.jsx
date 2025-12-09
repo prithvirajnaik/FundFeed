@@ -120,6 +120,20 @@ export default function Navbar() {
                 ${isActive("/investor-posts/create") ? "text-orange-600 font-semibold" : ""}`}>
               <PlusCircle size={18} /> Post
             </Link>
+
+            <Link
+              to="/dashboard"
+              className={`flex items-center gap-1
+                ${isActive("/dashboard") ? "text-orange-600 font-semibold" : ""}`}>
+              <LayoutDashboard size={18} /> Dashboard
+            </Link>
+
+            <Link
+              to="/requests"
+              className={`flex items-center gap-1
+                ${isActive("/requests") ? "text-orange-600 font-semibold" : ""}`}>
+              <Inbox size={18} /> Requests
+            </Link>
             <Link
               to="/saved"
               className={`flex items-center gap-1

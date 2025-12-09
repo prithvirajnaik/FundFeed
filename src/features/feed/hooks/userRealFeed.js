@@ -1,20 +1,24 @@
 import { useEffect, useState } from "react";
 import api from "../../../api/apiClient";
 
-export default function useRealFeed() {
+export default function useRealFeed(search = "", filters = {}) {
   const [feed, setFeed] = useState([]);
 
   useEffect(() => {
-    api.get("/api/pitches/")
+    const params = new URLSearchParams();
+    if (search) params.append("search", search);
+    if (filters.stage) params.append("stage", filters.stage);
+    if (filters.tags) params.append("tags", filters.tags);
+
+    api.get(`/api/pitches/?${params.toString()}`)
       .then((res) => {
-        console.log("PITCH FEED:", res.data);
-        setFeed(res.data.results || []);   // ✅ FIX
+        setFeed(res.data.results || []);
       })
       .catch((err) => {
         console.error("Feed load error:", err);
-        setFeed([]);                       // prevent crash
+        setFeed([]);
       });
-  }, []);
+  }, [search, filters]);
 
   return feed;
 }

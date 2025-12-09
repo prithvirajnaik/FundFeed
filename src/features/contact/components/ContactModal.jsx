@@ -1,52 +1,55 @@
-/**
- * Contact Developer Modal
- * -----------------------
- * Used on Pitch Detail page.
- * Fields:
- *  - message (required)
- *  - meeting link (optional)
- *  - contact preference
- * 
- * Backend-ready payload.
- */
-
 import { X } from "lucide-react";
 import { useState } from "react";
+import { createRequest } from "../../requests/api/requestsApi";
 
-export default function ContactModal({ open, onClose, onSubmit, developer }) {
+export default function ContactModal({ open, onClose, context, recipientName }) {
+  // context: { type: 'pitch' | 'post', id: string }
+
   if (!open) return null;
 
   const [message, setMessage] = useState("");
   const [meetingLink, setMeetingLink] = useState("");
   const [preference, setPreference] = useState("email");
+  const [sending, setSending] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (message.trim().length === 0)
       return alert("Please enter a message.");
 
-    const payload = {
-      message,
-      meetingLink,
-      preference,
-      developerId: developer?.id,
-      createdAt: new Date().toISOString(),
-    };
+    setSending(true);
+    try {
+      const payload = {
+        message,
+        meeting_link: meetingLink,
+        preference,
+        // Dynamically set the ID based on context
+        [context.type === 'pitch' ? 'pitch' : 'investor_post']: context.id
+      };
 
-    onSubmit(payload);
-    onClose();
+      await createRequest(payload);
+      alert("Request sent successfully!");
+      onClose();
+      setMessage("");
+      setMeetingLink("");
+    } catch (err) {
+      console.error("Failed to send request", err);
+      alert("Failed to send request. Please try again.");
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
-      
+
       <div className="bg-white w-full max-w-lg p-6 rounded-xl shadow-lg animate-fadeIn">
-        
+
         {/* Header */}
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold text-primary">
-            Contact {developer?.name}
+            Contact {recipientName}
           </h2>
           <button onClick={onClose}>
             <X size={24} className="text-gray-600 hover:text-black" />
@@ -97,9 +100,10 @@ export default function ContactModal({ open, onClose, onSubmit, developer }) {
           {/* Submit */}
           <button
             type="submit"
-            className="w-full bg-accent text-white py-3 rounded-lg text-lg hover:bg-opacity-90"
+            disabled={sending}
+            className="w-full bg-orange-600 text-white py-3 rounded-lg text-lg hover:bg-orange-700 disabled:bg-gray-400 transition"
           >
-            Send Message
+            {sending ? "Sending..." : "Send Message"}
           </button>
 
         </form>

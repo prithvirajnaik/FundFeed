@@ -6,7 +6,7 @@ import usePitchDetail from "../hooks/usePitchDetail";
 import PitchMeta from "../components/PitchMeta";
 import PitchActions from "../components/PitchActions";
 
-import ContactModal from "../../contact/components/ContachModal";
+import ContactModal from "../../contact/components/ContactModal";
 import useContactModal from "../../contact/hooks/useContactModal";
 import Toast from "../../../components/Toast";
 
@@ -20,7 +20,7 @@ export default function PitchDetail() {
   const contact = useContactModal();
 
   const { isSaved, toggleSavePitch } = useAuth();
-const [toast, setToast] = useState(null);
+  const [toast, setToast] = useState(null);
 
   // Sync when API loads
   useEffect(() => {
@@ -29,20 +29,20 @@ const [toast, setToast] = useState(null);
 
   if (!pitch) return <div className="p-10 text-center">Loading...</div>;
 
-const handleSave = async () => {
-  const wasSaved = isSaved(pitch.id);
+  const handleSave = async () => {
+    const wasSaved = isSaved(pitch.id);
 
-  await toggleSavePitch(pitch.id);
+    await toggleSavePitch(pitch.id);
 
-  // Live update count
-  setPitch((prev) => ({
-    ...prev,
-    saves: wasSaved ? prev.saves - 1 : prev.saves + 1,
-  }));
+    // Live update count
+    setPitch((prev) => ({
+      ...prev,
+      saves: wasSaved ? prev.saves - 1 : prev.saves + 1,
+    }));
 
-  // Toast
-  setToast(wasSaved ? "Removed from saved" : "Pitch Saved!");
-};
+    // Toast
+    setToast(wasSaved ? "Removed from saved" : "Pitch Saved!");
+  };
 
 
   return (
@@ -89,8 +89,8 @@ const handleSave = async () => {
       <ContactModal
         open={contact.open}
         onClose={contact.closeModal}
-        onSubmit={(payload) => console.log("CONTACT →", payload)}
-        developer={pitch.developer}
+        context={{ type: 'pitch', id: pitch.id }}
+        recipientName={pitch.developer?.name}
       />
       {toast && <Toast message={toast} onClose={() => setToast(null)} />}
 

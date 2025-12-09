@@ -9,14 +9,20 @@ import PitchCard from "../components/PitchCard";
 import InvestorPostCard from "../../investor-posts/components/InvestorPostCard";
 
 import SearchBar from "../components/SearchBar";
+import FeedFilters from "../components/FeedFilters";
 
 export default function Feed() {
   const { user } = useAuth();
-
-  const pitches = useRealFeed();            // Developer videos
-  const investorPosts = useInvestorPosts(); // Investor funding posts
-
   const [search, setSearch] = useState("");
+  const [filters, setFilters] = useState({
+    tags: "",
+    stage: "",
+    location: "",
+    role: "" // Not used yet
+  });
+
+  const pitches = useRealFeed(search, filters);            // Developer videos
+  const investorPosts = useInvestorPosts(search, filters); // Investor funding posts
 
   const [tab, setTab] = useState(
     user?.role === "developer" ? "investor_posts" : "pitches"
@@ -27,21 +33,21 @@ export default function Feed() {
 
       <SearchBar search={search} setSearch={setSearch} />
 
+      <FeedFilters filters={filters} setFilters={setFilters} />
+
       {/* FEED TAB SWITCH */}
       <div className="flex gap-4 my-4">
         <button
-          className={`px-3 py-1 rounded-lg ${
-            tab === "pitches" ? "text-orange-600 font-semibold" : "text-gray-600"
-          }`}
+          className={`px-3 py-1 rounded-lg ${tab === "pitches" ? "text-orange-600 font-semibold" : "text-gray-600"
+            }`}
           onClick={() => setTab("pitches")}
         >
           Pitches
         </button>
 
         <button
-          className={`px-3 py-1 rounded-lg ${
-            tab === "investor_posts" ? "text-orange-600 font-semibold" : "text-gray-600"
-          }`}
+          className={`px-3 py-1 rounded-lg ${tab === "investor_posts" ? "text-orange-600 font-semibold" : "text-gray-600"
+            }`}
           onClick={() => setTab("investor_posts")}
         >
           Investor Posts

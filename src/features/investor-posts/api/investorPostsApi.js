@@ -10,6 +10,11 @@ export const getInvestorPost = async (id) => {
     return response.data;
 };
 
+export const fetchMyInvestorPosts = async () => {
+    const response = await api.get("/api/investor-posts/?investor=me");
+    return response.data.results || response.data;
+};
+
 export const createInvestorPost = async (data) => {
     // Use multipart/form-data if logo is present, otherwise json
     const config = {
@@ -19,6 +24,10 @@ export const createInvestorPost = async (data) => {
     };
     const response = await api.post("/api/investor-posts/", data, config);
     return response.data;
+};
+
+export const deleteInvestorPost = async (id) => {
+    await api.delete(`/api/investor-posts/${id}/`);
 };
 
 export const saveInvestorPost = async (id) => {

@@ -1,39 +1,66 @@
+import { useState } from "react";
 import useAuth from "../../../hooks/useAuth";
 import useRequests from "../hooks/useRequests";
 import RequestCard from "../components/RequestCard";
 import RequestEmptyState from "../components/RequestEmptyState";
+import { Inbox, Send } from "lucide-react";
 
 export default function RequestsInbox() {
   const { user } = useAuth();
-
-  // prevent investors from opening inbox
-  if (user.role !== "developer") {
-    return (
-      <div className="p-10 text-center text-red-500">
-        Only developers can access the Requests Inbox.
-      </div>
-    );
-  }
-
-  const { requests, markViewed } = useRequests(user.id);
-
-  if (!requests) return <div className="p-10">Loading...</div>;
-
-  if (requests.length === 0) return <RequestEmptyState />;
+  const [activeTab, setActiveTab] = useState("inbox"); // 'inbox' | 'sent'
+  const { requests, loading, markViewed } = useRequests(activeTab);
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
-      <h1 className="text-3xl font-bold text-primary mb-4">
-        Contact Requests
-      </h1>
 
-      {requests.map((req) => (
-        <RequestCard
-          key={req.id}
-          request={req}
-          onViewed={markViewed}
-        />
-      ))}
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold text-gray-900">
+          {user.role === 'developer' ? 'Investor Interests' : 'Developer Responses'}
+        </h1>
+      </div>
+
+      {/* TABS */}
+      <div className="flex border-b border-gray-200">
+        <button
+          onClick={() => setActiveTab("inbox")}
+          className={`flex items-center gap-2 px-6 py-3 font-medium text-sm transition-colors border-b-2 ${activeTab === "inbox"
+              ? "border-orange-600 text-orange-600"
+              : "border-transparent text-gray-500 hover:text-gray-700"
+            }`}
+        >
+          <Inbox size={18} />
+          Inbox
+        </button>
+        <button
+          onClick={() => setActiveTab("sent")}
+          className={`flex items-center gap-2 px-6 py-3 font-medium text-sm transition-colors border-b-2 ${activeTab === "sent"
+              ? "border-orange-600 text-orange-600"
+              : "border-transparent text-gray-500 hover:text-gray-700"
+            }`}
+        >
+          <Send size={18} />
+          Sent
+        </button>
+      </div>
+
+      {/* CONTENT */}
+      {loading ? (
+        <div className="p-10 text-center text-gray-500">Loading requests...</div>
+      ) : requests && requests.length > 0 ? (
+        <div className="space-y-4">
+          {requests.map((req) => (
+            <RequestCard
+              key={req.id}
+              request={req}
+              onViewed={markViewed}
+              userRole={user.role}
+              isSentBox={activeTab === "sent"}
+            />
+          ))}
+        </div>
+      ) : (
+        <RequestEmptyState message={activeTab === "sent" ? "No sent requests found." : "No requests received yet."} />
+      )}
     </div>
   );
 }

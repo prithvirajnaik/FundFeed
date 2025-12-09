@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { Bookmark, Briefcase, MapPin, DollarSign } from "lucide-react";
 import { getInvestorPost, saveInvestorPost, unsaveInvestorPost } from "../api/investorPostsApi";
 import useContactModal from "../../contact/hooks/useContactModal";
-import ContactModal from "../../contact/components/ContachModal";
+import ContactModal from "../../contact/components/ContactModal";
 
 export default function InvestorPostDetail() {
   const { id } = useParams();
@@ -175,12 +175,8 @@ export default function InvestorPostDetail() {
       <ContactModal
         open={contact.open}
         onClose={contact.closeModal}
-        onSubmit={(payload) => console.log("CONTACT →", payload)}
-        developer={{
-          name: post.investor?.name,
-          email: post.investor?.email, // Make sure backend sends this or we handle it
-          id: post.investor?.id,
-        }}
+        context={{ type: 'post', id: post.id }}
+        recipientName={post.investor?.name}
       />
     </div>
   );

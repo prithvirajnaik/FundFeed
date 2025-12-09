@@ -7,63 +7,45 @@ import PitchCardMobile from "../components/PitchCardMobile";
 
 import DeletePitchModal from "../components/DeletePitchModal";
 
+import { fetchMyPitches, deletePitch } from "../api/dashboardApi";
+
 export default function DeveloperDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
   const [pitches, setPitches] = useState([]);
   const [deleteId, setDeleteId] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // ✔ MOCK DATA (no backend yet)
-  const mockPitches = [
-    {
-      id: "p1",
-      title: "AI Fitness Coach",
-      thumbnail: "https://picsum.photos/300/180",
-      views: 1540,
-      saves: 122,
-      stage: "Seed",
-      tags: ["AI", "Fitness"],       // REQUIRED for edit page
-      description: "Short desc",
-      ask: "$20k",
-      videoUrl: "",                  // safe
-    },
-    {
-      id: "p2",
-      title: "Fintech Fraud Detector",
-      thumbnail: "https://picsum.photos/300/181",
-      views: 890,
-      saves: 45,
-      stage: "Pre-seed",
-      tags: ["Fintech"],
-      description: "Short desc",
-      ask: "$50k",
-      videoUrl: "",
-    },
-    {
-      id: "p3",
-      title: "Voice-based Note App",
-      thumbnail: "https://picsum.photos/300/182",
-      views: 2200,
-      saves: 340,
-      stage: "Series A",
-      tags: ["Voice", "SaaS"],
-      description: "Short desc",
-      ask: "$10k",
-      videoUrl: "",
-    },
-  ];
-
-  // Load mock pitches
+  // Load real pitches
   useEffect(() => {
     if (!user) return;
-    setPitches(mockPitches);
+    loadPitches();
   }, [user]);
 
-  // DELETE HANDLER (mock)
+  const loadPitches = async () => {
+    try {
+      setLoading(true);
+      const data = await fetchMyPitches();
+      setPitches(data);
+    } catch (err) {
+      console.error("Failed to load pitches", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // DELETE HANDLER
   const handleDelete = async () => {
-    setPitches(prev => prev.filter(p => p.id !== deleteId));
-    setDeleteId(null);
+    if (!deleteId) return;
+    try {
+      await deletePitch(deleteId);
+      setPitches(prev => prev.filter(p => p.id !== deleteId));
+      setDeleteId(null);
+    } catch (err) {
+      console.error("Failed to delete pitch", err);
+      alert("Failed to delete pitch");
+    }
   };
 
   return (

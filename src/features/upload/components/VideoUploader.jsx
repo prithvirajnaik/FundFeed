@@ -9,7 +9,7 @@ Supports:
 */
 
 
-export default function VideoUploader({ video, setVideo }) {
+export default function VideoUploader({ video, setVideo, existingVideo }) {
   const fileRef = useRef(null);
   const [error, setError] = useState(null);
   const [preview, setPreview] = useState(null);
@@ -47,12 +47,20 @@ export default function VideoUploader({ video, setVideo }) {
     <div className="p-4 border rounded-xl bg-white shadow">
       <p className="font-semibold mb-2">Upload Pitch Video</p>
 
-      {preview ? (
-        <video
-          src={preview}
-          controls
-          className="w-full rounded-lg mb-3"
-        ></video>
+      {preview || existingVideo ? (
+        <div className="mb-3">
+          <video
+            src={preview || existingVideo}
+            controls
+            className="w-full rounded-lg mb-2"
+          ></video>
+          <button
+            onClick={() => fileRef.current.click()}
+            className="text-sm text-orange-600 hover:underline"
+          >
+            Change Video
+          </button>
+        </div>
       ) : (
         <div
           className="w-full h-48 bg-gray-200 rounded-lg flex items-center justify-center text-gray-600 cursor-pointer"

@@ -104,6 +104,26 @@ export default function BottomNav() {
         </Link>
       )}
 
+      {/* Dashboard (investor only) */}
+      {user.role === "investor" && (
+        <Link to="/dashboard" className="flex flex-col items-center">
+          <LayoutDashboard size={22} className={isActive("/dashboard") ? "text-orange-600" : "text-gray-600"} />
+          <span className={`text-[10px] ${isActive("/dashboard") ? "text-orange-600" : "text-gray-600"}`}>
+            Dashboard
+          </span>
+        </Link>
+      )}
+
+      {/* Requests (investor only) */}
+      {user.role === "investor" && (
+        <Link to="/requests" className="flex flex-col items-center">
+          <Inbox size={22} className={isActive("/requests") ? "text-orange-600" : "text-gray-600"} />
+          <span className={`text-[10px] ${isActive("/requests") ? "text-orange-600" : "text-gray-600"}`}>
+            Requests
+          </span>
+        </Link>
+      )}
+
       {/* Profile */}
       <Link
         to={
