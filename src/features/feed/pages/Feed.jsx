@@ -97,15 +97,15 @@ export default function Feed() {
       <SearchBar search={search} setSearch={setSearch} />
 
       {/* FILTERS */}
-      <FeedFilters filters={filters} setFilters={setFilters} />
+      {/* <FeedFilters filters={filters} setFilters={setFilters} /> */}
 
       {/* TAB SWITCH */}
       <div className="flex gap-4 my-4">
         <button
           onClick={() => setTab("pitches")}
           className={`px-3 py-1 rounded-lg ${tab === "pitches"
-              ? "text-orange-600 font-semibold"
-              : "text-gray-600"
+            ? "text-orange-600 font-semibold"
+            : "text-gray-600"
             }`}
         >
           Pitches
@@ -114,8 +114,8 @@ export default function Feed() {
         <button
           onClick={() => setTab("investor_posts")}
           className={`px-3 py-1 rounded-lg ${tab === "investor_posts"
-              ? "text-orange-600 font-semibold"
-              : "text-gray-600"
+            ? "text-orange-600 font-semibold"
+            : "text-gray-600"
             }`}
         >
           Investor Posts

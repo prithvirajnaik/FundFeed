@@ -11,7 +11,7 @@ import Register from "./features/auth/pages/Register";
 
 import Feed from "./features/feed/pages/Feed"
 
-import PitchDetail from "./features/pitchDetail/pages/pitchDetail";
+import PitchDetail from "./features/pitchDetail/pages/PitchDetail";
 import InvestorPostDetail from "./features/investor-posts/pages/InvestorPostDetail";
 
 import UploadPitch from "./features/upload/pages/UploadPitch";
