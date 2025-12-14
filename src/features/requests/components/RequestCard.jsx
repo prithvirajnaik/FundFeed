@@ -1,7 +1,11 @@
-import { Mail, Calendar, Eye, EyeOff, CheckCircle } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Mail, Calendar, Eye, EyeOff, CheckCircle, Video, Download, FileText } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { downloadSummaryPDF } from "../api/requestsApi";
 
 export default function RequestCard({ request, onViewed, userRole, isSentBox }) {
+  const navigate = useNavigate();
+  const [downloadingPDF, setDownloadingPDF] = useState(false);
   const {
     id,
     developer,
@@ -13,6 +17,10 @@ export default function RequestCard({ request, onViewed, userRole, isSentBox }) 
     preference,
     created_at,
     viewed,
+    scheduled_start_time,
+    scheduled_end_time,
+    meeting_status,
+    meeting_summary,
   } = request;
 
   // Determine who is the "other person" and what is the context
@@ -81,17 +89,95 @@ export default function RequestCard({ request, onViewed, userRole, isSentBox }) 
         <p className="text-gray-800 whitespace-pre-wrap">{message}</p>
       </div>
 
-      {/* Meeting Link */}
+      {/* Meeting Link & Status */}
       {meeting_link && (
-        <a
-          href={meeting_link}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-2 text-orange-600 hover:underline font-medium"
-        >
-          <Calendar size={16} />
-          Meeting Link
-        </a>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <a
+              href={meeting_link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-orange-600 hover:underline font-medium"
+            >
+              <Calendar size={16} />
+              Meeting Link
+            </a>
+            {meeting_status && (
+              <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                meeting_status === 'scheduled' ? 'bg-blue-100 text-blue-700' :
+                meeting_status === 'in_progress' ? 'bg-green-100 text-green-700' :
+                meeting_status === 'completed' ? 'bg-gray-100 text-gray-700' :
+                'bg-red-100 text-red-700'
+              }`}>
+                {meeting_status === 'scheduled' ? 'Scheduled' :
+                 meeting_status === 'in_progress' ? 'In Progress' :
+                 meeting_status === 'completed' ? 'Completed' : 'Cancelled'}
+              </span>
+            )}
+          </div>
+          
+          {scheduled_start_time && scheduled_end_time && (
+            <p className="text-xs text-gray-600">
+              Scheduled: {new Date(scheduled_start_time).toLocaleString()} - {new Date(scheduled_end_time).toLocaleString()}
+            </p>
+          )}
+          
+          {/* Join Meeting Button */}
+          {meeting_status === 'scheduled' && (
+            <button
+              onClick={() => navigate(`/meeting/${id}`)}
+              className="flex items-center gap-2 bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition text-sm font-medium w-full justify-center"
+            >
+              <Video size={16} />
+              Join Meeting
+            </button>
+          )}
+          
+          {meeting_status === 'in_progress' && (
+            <button
+              onClick={() => navigate(`/meeting/${id}`)}
+              className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition text-sm font-medium w-full justify-center"
+            >
+              <Video size={16} />
+              Continue Meeting
+            </button>
+          )}
+          
+          {meeting_status === 'completed' && meeting_summary && (
+            <div className="space-y-2">
+              <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                <p className="text-sm text-gray-700 font-semibold mb-1">Meeting Summary:</p>
+                <p className="text-xs text-gray-600 line-clamp-3">{meeting_summary}</p>
+              </div>
+              <button
+                onClick={async () => {
+                  setDownloadingPDF(true);
+                  try {
+                    const blob = await downloadSummaryPDF(id);
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `meeting_summary_${id}.pdf`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                  } catch (error) {
+                    console.error("Failed to download PDF", error);
+                    alert("Failed to download PDF. Please try again.");
+                  } finally {
+                    setDownloadingPDF(false);
+                  }
+                }}
+                disabled={downloadingPDF}
+                className="flex items-center gap-2 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition text-sm font-medium w-full justify-center disabled:bg-gray-400"
+              >
+                <Download size={16} />
+                {downloadingPDF ? "Downloading..." : "Download PDF Summary"}
+              </button>
+            </div>
+          )}
+        </div>
       )}
 
       {/* Contact Preference */}

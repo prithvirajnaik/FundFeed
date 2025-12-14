@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
+import { Toaster } from 'react-hot-toast';
 
 import Navbar from "./components/Navbar";
 import BottomNav from "./components/BottomNav";
@@ -21,6 +22,7 @@ import InvestorProfile from "./features/profile/pages/InvestorProfile";
 import Saved from "./features/saved/pages/Saved";
 
 import RequestsInbox from "./features/requests/pages/RequestsInbox";
+import MeetingRoom from "./features/requests/pages/MeetingRoom";
 import DashboardRouter from "./features/dashboard/pages/DashboardRouter";
 import EditPitch from "./features/dashboard/pages/EditPitch";
 
@@ -28,7 +30,7 @@ function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-
+        <Toaster />
         <Navbar />
         <div className="pb-14">
           <Routes>
@@ -138,6 +140,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <RequestsInbox />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/meeting/:id"
+              element={
+                <ProtectedRoute>
+                  <MeetingRoom />
                 </ProtectedRoute>
               }
             />

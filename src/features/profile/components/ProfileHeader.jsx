@@ -1,6 +1,7 @@
 import { MapPin, Edit } from "lucide-react";
 
 export default function ProfileHeader({ profile, isOwner, onEdit }) {
+  console.log(profile.avatar)
   return (
     <div className="mb-10">
       <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
@@ -9,13 +10,13 @@ export default function ProfileHeader({ profile, isOwner, onEdit }) {
         <div className="relative">
           <div className="w-32 h-32 md:w-40 md:h-40 rounded-full p-1 bg-gradient-to-tr from-yellow-400 to-orange-600 shadow-lg">
             <img
-              src={"http://localhost:8000/" + profile.avatar}
+              src={import.meta.env.VITE_API_URL + profile.avatar}
               className="w-full h-full rounded-full object-cover border-4 border-white shadow-md"
               alt={profile.name}
             />
           </div>
         </div>
-
+{/* <h1>{import.meta.env.VITE_API_URL+profile.avatar}</h1> */}
         {/* Info */}
         <div className="flex flex-col w-full">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
@@ -39,12 +40,12 @@ export default function ProfileHeader({ profile, isOwner, onEdit }) {
             )}
           </div>
 
-          {/* Stats */}
+          {/* Stats
           <div className="flex justify-center md:justify-start gap-6 text-sm mb-6">
             <Stat label="posts" value="0" />
             <Stat label="connections" value="0" />
             <Stat label="views" value="0" />
-          </div>
+          </div> */}
 
           {/* Location */}
           {profile.location && (

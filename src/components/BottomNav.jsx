@@ -47,14 +47,14 @@ export default function BottomNav() {
       )}
 
       {/* Investor Posts (developer only) */}
-      {user.role === "developer" && (
+      {/* {user.role === "developer" && (
         <Link to="/investor-posts" className="flex flex-col items-center">
           <Briefcase size={22} className={isActive("/investor-posts") ? "text-orange-600" : "text-gray-600"} />
           <span className={`text-[10px] ${isActive("/investor-posts") ? "text-orange-600" : "text-gray-600"}`}>
             Inv. Posts
           </span>
         </Link>
-      )}
+      )} */}
 
       {/* Dashboard (developer only) */}
       {user.role === "developer" && (

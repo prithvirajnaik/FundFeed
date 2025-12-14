@@ -61,12 +61,12 @@ export default function Navbar() {
               <Home size={18} /> Feed
             </Link>
 
-            <Link
+            {/* <Link
               to="/investor-posts"
               className={`flex items-center gap-1
                 ${isActive("/investor-posts") ? "text-orange-600 font-semibold" : ""}`}>
               <Briefcase size={18} /> Investor Posts
-            </Link>
+            </Link> */}
 
             <Link
               to="/upload"

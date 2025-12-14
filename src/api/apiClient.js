@@ -2,7 +2,7 @@ import axios from "axios";
 console.log("🔥 apiClient loaded");
 
 const api = axios.create({
-  baseURL: "http://127.0.0.1:8000",   // Django backend
+  baseURL: import.meta.env.VITE_API_URL|| "http://localhost:8000",   // Django backend
 });
 
 // Automatically attach access token
