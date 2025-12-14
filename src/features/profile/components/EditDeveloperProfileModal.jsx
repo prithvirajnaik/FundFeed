@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import api from "../../../api/apiClient";
+import toast from 'react-hot-toast';
+import FormField from "../../../components/FormField";
+import LoadingButton from "../../../components/LoadingButton";
 
 export default function EditDeveloperProfileModal({ profile, onClose, onSuccess }) {
     const [formData, setFormData] = useState({
@@ -16,7 +19,6 @@ export default function EditDeveloperProfileModal({ profile, onClose, onSuccess 
     const [previewUrl, setPreviewUrl] = useState(profile?.avatar || "");
     const [newSkill, setNewSkill] = useState("");
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
@@ -46,7 +48,6 @@ export default function EditDeveloperProfileModal({ profile, onClose, onSuccess 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
-        setError(null);
 
         try {
             const data = new FormData();
@@ -54,6 +55,14 @@ export default function EditDeveloperProfileModal({ profile, onClose, onSuccess 
             Object.keys(formData).forEach(key => {
                 if (key === 'skills') {
                     data.append(key, JSON.stringify(formData[key]));
+                } else if (key === 'links') {
+                    // Verify if backend expects nested links or flat. Original code used flat keys from formData state?
+                    // State structure: github, linkedin...
+                    // Original code: 
+                    // Object.keys(formData).forEach... if key is github/linkedin/portfolio... 
+                    // Wait, in previous code formData keys were title, bio, skills, github, linkedin, portfolio.
+                    // So this loop works fine.
+                    data.append(key, formData[key]);
                 } else {
                     data.append(key, formData[key]);
                 }
@@ -66,11 +75,12 @@ export default function EditDeveloperProfileModal({ profile, onClose, onSuccess 
             await api.patch("/direct-profile-update/", data, {
                 headers: { "Content-Type": "multipart/form-data" },
             });
+            toast.success("Profile updated successfully!");
             onSuccess();
             onClose();
         } catch (err) {
             console.error("Failed to update profile:", err);
-            setError("Failed to update profile. Please try again.");
+            toast.error("Failed to update profile. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -87,13 +97,6 @@ export default function EditDeveloperProfileModal({ profile, onClose, onSuccess 
                         <X size={24} />
                     </button>
                 </div>
-
-                {/* Error Message */}
-                {error && (
-                    <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
-                        {error}
-                    </div>
-                )}
 
                 {/* Form */}
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -121,36 +124,24 @@ export default function EditDeveloperProfileModal({ profile, onClose, onSuccess 
                     </div>
 
                     {/* Title */}
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-1">
-                            Title
-                        </label>
-                        <input
-                            type="text"
-                            value={formData.title}
-                            onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                            placeholder="e.g., Full Stack Developer"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                        />
-                    </div>
+                    <FormField
+                        label="Title"
+                        value={formData.title}
+                        onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                        placeholder="e.g., Full Stack Developer"
+                    />
 
                     {/* Bio */}
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-1">
-                            Bio
-                        </label>
-                        <textarea
-                            value={formData.bio}
-                            onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
-                            placeholder="Tell us about yourself..."
-                            maxLength={300}
-                            rows={4}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
-                        />
-                        <p className="text-xs text-gray-500 mt-1">
-                            {formData.bio.length}/300 characters
-                        </p>
-                    </div>
+                    <FormField
+                        as="textarea"
+                        label="Bio"
+                        value={formData.bio}
+                        onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
+                        placeholder="Tell us about yourself..."
+                        maxLength={300}
+                        rows={4}
+                        helpText={`${formData.bio.length}/300 characters`}
+                    />
 
                     {/* Skills */}
                     <div>
@@ -164,7 +155,7 @@ export default function EditDeveloperProfileModal({ profile, onClose, onSuccess 
                                 onChange={(e) => setNewSkill(e.target.value)}
                                 onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddSkill())}
                                 placeholder="Add a skill..."
-                                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
                             />
                             <button
                                 type="button"
@@ -185,6 +176,7 @@ export default function EditDeveloperProfileModal({ profile, onClose, onSuccess 
                                         type="button"
                                         onClick={() => handleRemoveSkill(skill)}
                                         className="hover:text-orange-900"
+                                        aria-label={`Remove skill ${skill}`}
                                     >
                                         <X size={14} />
                                     </button>
@@ -194,63 +186,48 @@ export default function EditDeveloperProfileModal({ profile, onClose, onSuccess 
                     </div>
 
                     {/* GitHub */}
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-1">
-                            GitHub URL
-                        </label>
-                        <input
-                            type="url"
-                            value={formData.github}
-                            onChange={(e) => setFormData(prev => ({ ...prev, github: e.target.value }))}
-                            placeholder="https://github.com/username"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                        />
-                    </div>
+                    <FormField
+                        label="GitHub URL"
+                        type="url"
+                        value={formData.github}
+                        onChange={(e) => setFormData(prev => ({ ...prev, github: e.target.value }))}
+                        placeholder="https://github.com/username"
+                    />
 
                     {/* LinkedIn */}
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-1">
-                            LinkedIn URL
-                        </label>
-                        <input
-                            type="url"
-                            value={formData.linkedin}
-                            onChange={(e) => setFormData(prev => ({ ...prev, linkedin: e.target.value }))}
-                            placeholder="https://linkedin.com/in/username"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                        />
-                    </div>
+                    <FormField
+                        label="LinkedIn URL"
+                        type="url"
+                        value={formData.linkedin}
+                        onChange={(e) => setFormData(prev => ({ ...prev, linkedin: e.target.value }))}
+                        placeholder="https://linkedin.com/in/username"
+                    />
 
                     {/* Portfolio */}
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-1">
-                            Portfolio URL
-                        </label>
-                        <input
-                            type="url"
-                            value={formData.portfolio}
-                            onChange={(e) => setFormData(prev => ({ ...prev, portfolio: e.target.value }))}
-                            placeholder="https://yourportfolio.com"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                        />
-                    </div>
+                    <FormField
+                        label="Portfolio URL"
+                        type="url"
+                        value={formData.portfolio}
+                        onChange={(e) => setFormData(prev => ({ ...prev, portfolio: e.target.value }))}
+                        placeholder="https://yourportfolio.com"
+                    />
 
                     {/* Buttons */}
                     <div className="flex gap-3 pt-4">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 bg-white"
                         >
                             Cancel
                         </button>
-                        <button
+                        <LoadingButton
                             type="submit"
-                            disabled={loading}
-                            className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                            loading={loading}
+                            className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
                         >
-                            {loading ? "Saving..." : "Save Changes"}
-                        </button>
+                            Save Changes
+                        </LoadingButton>
                     </div>
                 </form>
 

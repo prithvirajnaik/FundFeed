@@ -8,7 +8,6 @@ import PitchActions from "../components/PitchActions";
 
 import ContactModal from "../../contact/components/ContactModal";
 import useContactModal from "../../contact/hooks/useContactModal";
-import Toast from "../../../components/Toast";
 
 import useAuth from "../../../hooks/useAuth";
 
@@ -20,7 +19,6 @@ export default function PitchDetail() {
   const contact = useContactModal();
 
   const { isSaved, toggleSavePitch } = useAuth();
-  const [toast, setToast] = useState(null);
 
   // Sync when API loads
   useEffect(() => {
@@ -39,9 +37,6 @@ export default function PitchDetail() {
       ...prev,
       saves: wasSaved ? prev.saves - 1 : prev.saves + 1,
     }));
-
-    // Toast
-    setToast(wasSaved ? "Removed from saved" : "Pitch Saved!");
   };
 
 
@@ -92,7 +87,6 @@ export default function PitchDetail() {
         context={{ type: 'pitch', id: pitch.id }}
         recipientName={pitch.developer?.name}
       />
-      {toast && <Toast message={toast} onClose={() => setToast(null)} />}
 
     </div>
   );

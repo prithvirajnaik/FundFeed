@@ -1,11 +1,14 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import toast from 'react-hot-toast';
 
 import usePitchDetail from "../../pitchDetail/hooks/usePitchDetail";
 import VideoUploader from "../../upload/components/VideoUploader";
 import PitchFormFields from "../../upload/components/PitchFormFields";
 import TagInput from "../../upload/components/TagInput";
 import { updatePitch } from "../api/dashboardApi";
+import LoadingButton from "../../../components/LoadingButton";
+import LoadingSpinner from "../../../components/LoadingSpinner";
 
 export default function EditPitch() {
   const { id } = useParams();
@@ -14,27 +17,51 @@ export default function EditPitch() {
 
   const [form, setForm] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     if (pitch) {
       setForm({
         title: pitch.title,
         description: pitch.description,
-        stage: pitch.funding_stage || pitch.stage, // Handle both cases
+        stage: pitch.funding_stage || pitch.stage,
         ask: pitch.ask,
         tags: Array.isArray(pitch.tags) ? pitch.tags : [],
-        video: null, // New video file
+        video: null,
         existingVideo: pitch.video_url,
         thumbnail: pitch.thumbnail
       });
     }
   }, [pitch]);
 
-  const update = (key, value) =>
+  const update = (key, value) => {
     setForm(prev => ({ ...prev, [key]: value }));
+    if (errors[key]) {
+      setErrors(prev => ({ ...prev, [key]: null }));
+    }
+  };
+
+  const validate = () => {
+    const newErrors = {};
+    if (!form.title) newErrors.title = "Title is required";
+    if (!form.description) newErrors.description = "Description is required";
+    if (!form.stage) newErrors.stage = "Funding stage is required";
+    if (!form.ask) newErrors.ask = "Funding ask is required";
+
+    if (form.tags.length < 3) {
+      toast.error("Please add at least 3 tags");
+      return false;
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSave = async () => {
-    if (!form.title || !form.description) return alert("Title and description are required");
+    if (!validate()) {
+      toast.error("Please fill in all required fields.");
+      return;
+    }
 
     setSaving(true);
     try {
@@ -52,17 +79,17 @@ export default function EditPitch() {
       }
 
       await updatePitch(id, formData);
-      alert("Pitch updated successfully!");
+      toast.success("Pitch updated successfully!");
       navigate("/dashboard");
     } catch (err) {
       console.error("Failed to update pitch", err);
-      alert("Failed to update pitch. Please try again.");
+      toast.error("Failed to update pitch. Please try again.");
     } finally {
       setSaving(false);
     }
   };
 
-  if (!form) return <div className="p-6">Loading…</div>;
+  if (!form) return <div className="flex justify-center p-12"><LoadingSpinner /></div>;
 
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-6">
@@ -77,17 +104,17 @@ export default function EditPitch() {
         existingVideo={form.existingVideo}
       />
 
-      <PitchFormFields form={form} update={update} />
+      <PitchFormFields form={form} update={update} errors={errors} />
 
       <TagInput tags={form.tags} setTags={(t) => update("tags", t)} />
 
-      <button
+      <LoadingButton
         onClick={handleSave}
-        disabled={saving}
-        className="w-full py-3 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 disabled:bg-gray-400"
+        loading={saving}
+        className="w-full py-3 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700"
       >
-        {saving ? "Saving..." : "Save Changes"}
-      </button>
+        Save Changes
+      </LoadingButton>
 
     </div>
   );

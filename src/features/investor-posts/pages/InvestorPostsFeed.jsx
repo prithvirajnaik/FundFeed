@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, FileText } from "lucide-react";
 import InvestorPostCard from "../components/InvestorPostCard";
 import { fetchInvestorPosts, saveInvestorPost, unsaveInvestorPost } from "../api/investorPostsApi";
 import { useAuth } from "../../../context/AuthContext";
-import api from "../../../api/apiClient"; // Import api to fetch saved list directly if needed or add to api service
+import api from "../../../api/apiClient";
+import useDebounce from "../../../hooks/useDebounce";
+import LoadingSpinner from "../../../components/LoadingSpinner";
+import EmptyState from "../../../components/EmptyState";
 
 export default function InvestorPostsFeed() {
     const { user } = useAuth();
@@ -14,23 +17,22 @@ export default function InvestorPostsFeed() {
     const [error, setError] = useState(null);
     const [search, setSearch] = useState("");
 
+    const debouncedSearch = useDebounce(search, 500);
+
     useEffect(() => {
         loadData();
-    }, []);
+    }, [debouncedSearch]);
 
     const loadData = async () => {
         setLoading(true);
         try {
             const [postsData, savedData] = await Promise.all([
-                fetchInvestorPosts({ search }),
-                // Only fetch saved if user is developer (or authenticated)
+                fetchInvestorPosts({ search: debouncedSearch }),
                 user ? api.get("/api/investor-posts/saved/").catch(() => ({ data: [] })) : Promise.resolve({ data: [] })
             ]);
 
             setPosts(postsData.results || postsData);
 
-            // savedData.data is list of { developer, post: {...}, saved_at }
-            // We just need post IDs
             const ids = savedData.data.map(item => item.post.id);
             setSavedIds(ids);
 
@@ -42,21 +44,11 @@ export default function InvestorPostsFeed() {
         }
     };
 
-    const handleSearch = (e) => {
-        e.preventDefault();
-        loadData(); // Re-fetch with search param (need to pass search to fetchInvestorPosts inside loadData or update state before calling)
-        // Actually loadData uses current 'search' state, but setState is async.
-        // Better to pass search explicitly or rely on useEffect dependency if we added it.
-        // For now let's just call fetchInvestorPosts directly here.
-        fetchInvestorPosts({ search }).then(data => setPosts(data.results || data));
-    };
-
     const handleSave = async (postId) => {
         try {
             if (savedIds.includes(postId)) {
                 await unsaveInvestorPost(postId);
                 setSavedIds(prev => prev.filter(id => id !== postId));
-                // Update post saved_count locally
                 setPosts(prev => prev.map(p => p.id === postId ? { ...p, saved_count: p.saved_count - 1 } : p));
             } else {
                 await saveInvestorPost(postId);
@@ -91,7 +83,7 @@ export default function InvestorPostsFeed() {
             </div>
 
             {/* Search Bar */}
-            <form onSubmit={handleSearch} className="mb-8 relative max-w-lg">
+            <div className="mb-8 relative max-w-lg">
                 <Search className="absolute left-4 top-3.5 text-gray-400" size={20} />
                 <input
                     type="text"
@@ -100,18 +92,21 @@ export default function InvestorPostsFeed() {
                     onChange={(e) => setSearch(e.target.value)}
                     className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all"
                 />
-            </form>
+            </div>
 
             {/* Feed Grid */}
             {loading ? (
-                <div className="text-center py-20 text-gray-500">Loading posts...</div>
+                <div className="flex justify-center py-20">
+                    <LoadingSpinner />
+                </div>
             ) : error ? (
                 <div className="text-center py-20 text-red-500">{error}</div>
             ) : posts.length === 0 ? (
-                <div className="text-center py-20 text-gray-500 bg-gray-50 rounded-2xl border border-dashed border-gray-300">
-                    <p className="text-lg font-medium">No posts found.</p>
-                    <p className="text-sm mt-1">Try adjusting your search or check back later.</p>
-                </div>
+                <EmptyState
+                    icon={FileText}
+                    title="No posts found"
+                    message="Try adjusting your search terms or check back later."
+                />
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {posts.map((post) => (

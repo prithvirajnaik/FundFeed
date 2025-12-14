@@ -16,7 +16,7 @@ export default function ProfileHeader({ profile, isOwner, onEdit }) {
             />
           </div>
         </div>
-{/* <h1>{import.meta.env.VITE_API_URL+profile.avatar}</h1> */}
+        {/* <h1>{import.meta.env.VITE_API_URL + profile.avatar}</h1> */}
         {/* Info */}
         <div className="flex flex-col w-full">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">

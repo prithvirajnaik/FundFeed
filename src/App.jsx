@@ -30,7 +30,31 @@ function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <Toaster />
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 3000,
+            style: {
+              background: '#fff',
+              color: '#0f0f0f',
+              padding: '12px 20px',
+              borderRadius: '8px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            },
+            success: {
+              iconTheme: {
+                primary: '#16A29A',
+                secondary: '#fff',
+              },
+            },
+            error: {
+              iconTheme: {
+                primary: '#FF6B2C',
+                secondary: '#fff',
+              },
+            },
+          }}
+        />
         <Navbar />
         <div className="pb-14">
           <Routes>

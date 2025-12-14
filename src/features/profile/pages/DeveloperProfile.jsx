@@ -25,7 +25,11 @@ export default function DeveloperProfile() {
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-6 relative">
 
-      <ProfileHeader profile={profile} isOwner={isOwner}/>
+      <ProfileHeader
+        profile={profile}
+        isOwner={isOwner}
+        onEdit={() => setIsEditModalOpen(true)}
+      />
 
       <BioSection bio={profile.bio} />
 
@@ -41,6 +45,7 @@ export default function DeveloperProfile() {
           onSuccess={() => {
             refetch();
           }}
+
         />
       )}
     </div>

@@ -2,8 +2,9 @@ import { useState } from "react";
 import useAuth from "../../../hooks/useAuth";
 import useRequests from "../hooks/useRequests";
 import RequestCard from "../components/RequestCard";
-import RequestEmptyState from "../components/RequestEmptyState";
-import { Inbox, Send } from "lucide-react";
+import EmptyState from "../../../components/EmptyState";
+import LoadingSpinner from "../../../components/LoadingSpinner";
+import { Inbox, Send, Mail } from "lucide-react";
 
 export default function RequestsInbox() {
   const { user } = useAuth();
@@ -24,8 +25,8 @@ export default function RequestsInbox() {
         <button
           onClick={() => setActiveTab("inbox")}
           className={`flex items-center gap-2 px-6 py-3 font-medium text-sm transition-colors border-b-2 ${activeTab === "inbox"
-              ? "border-orange-600 text-orange-600"
-              : "border-transparent text-gray-500 hover:text-gray-700"
+            ? "border-orange-600 text-orange-600"
+            : "border-transparent text-gray-500 hover:text-gray-700"
             }`}
         >
           <Inbox size={18} />
@@ -34,8 +35,8 @@ export default function RequestsInbox() {
         <button
           onClick={() => setActiveTab("sent")}
           className={`flex items-center gap-2 px-6 py-3 font-medium text-sm transition-colors border-b-2 ${activeTab === "sent"
-              ? "border-orange-600 text-orange-600"
-              : "border-transparent text-gray-500 hover:text-gray-700"
+            ? "border-orange-600 text-orange-600"
+            : "border-transparent text-gray-500 hover:text-gray-700"
             }`}
         >
           <Send size={18} />
@@ -45,7 +46,7 @@ export default function RequestsInbox() {
 
       {/* CONTENT */}
       {loading ? (
-        <div className="p-10 text-center text-gray-500">Loading requests...</div>
+        <LoadingSpinner centered />
       ) : requests && requests.length > 0 ? (
         <div className="space-y-4">
           {requests.map((req) => (
@@ -59,7 +60,17 @@ export default function RequestsInbox() {
           ))}
         </div>
       ) : (
-        <RequestEmptyState message={activeTab === "sent" ? "No sent requests found." : "No requests received yet."} />
+        <EmptyState
+          icon={activeTab === "inbox" ? Inbox : Send}
+          title={activeTab === "inbox" ? "Inbox Empty" : "No Sent Requests"}
+          message={
+            activeTab === "inbox"
+              ? "You haven't received any messages yet."
+              : "You haven't sent any contact requests yet."
+          }
+          actionLabel={activeTab === "sent" ? "Go to Feed" : null}
+          actionPath={activeTab === "sent" ? "/feed" : null}
+        />
       )}
     </div>
   );

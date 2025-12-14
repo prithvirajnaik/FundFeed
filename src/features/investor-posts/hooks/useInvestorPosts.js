@@ -24,5 +24,5 @@ export default function useInvestorPosts(search = "", filters = {}) {
     }
   };
 
-  return posts;
+  return { data: posts, loading, error };
 }

@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import api from "../../../api/apiClient";
+import toast from 'react-hot-toast';
+import FormField from "../../../components/FormField";
+import LoadingButton from "../../../components/LoadingButton";
 
 export default function EditInvestorProfileModal({ profile, onClose, onSuccess }) {
     const [formData, setFormData] = useState({
@@ -19,7 +22,6 @@ export default function EditInvestorProfileModal({ profile, onClose, onSuccess }
     const [newStage, setNewStage] = useState("");
     const [newSector, setNewSector] = useState("");
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
@@ -66,14 +68,17 @@ export default function EditInvestorProfileModal({ profile, onClose, onSuccess }
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
-        setError(null);
 
         try {
             const data = new FormData();
             // Append all text fields
             Object.keys(formData).forEach(key => {
+                // Handle complex fields and lists
                 if (key === 'stages' || key === 'sectors') {
                     data.append(key, JSON.stringify(formData[key]));
+                } else if (key === 'links') {
+                    // Original code didn't need to handle links separately as they were flattened in state
+                    data.append(key, formData[key]);
                 } else {
                     data.append(key, formData[key]);
                 }
@@ -86,11 +91,12 @@ export default function EditInvestorProfileModal({ profile, onClose, onSuccess }
             await api.patch("/direct-profile-update/", data, {
                 headers: { "Content-Type": "multipart/form-data" },
             });
+            toast.success("Profile updated successfully!");
             onSuccess();
             onClose();
         } catch (err) {
             console.error("Failed to update profile:", err);
-            setError("Failed to update profile. Please try again.");
+            toast.error("Failed to update profile. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -107,13 +113,6 @@ export default function EditInvestorProfileModal({ profile, onClose, onSuccess }
                         <X size={24} />
                     </button>
                 </div>
-
-                {/* Error Message */}
-                {error && (
-                    <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
-                        {error}
-                    </div>
-                )}
 
                 {/* Form */}
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -141,50 +140,32 @@ export default function EditInvestorProfileModal({ profile, onClose, onSuccess }
                     </div>
 
                     {/* Firm */}
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-1">
-                            Firm Name
-                        </label>
-                        <input
-                            type="text"
-                            value={formData.firm}
-                            onChange={(e) => setFormData(prev => ({ ...prev, firm: e.target.value }))}
-                            placeholder="e.g., ABC Ventures"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                        />
-                    </div>
+                    <FormField
+                        label="Firm Name"
+                        value={formData.firm}
+                        onChange={(e) => setFormData(prev => ({ ...prev, firm: e.target.value }))}
+                        placeholder="e.g., ABC Ventures"
+                    />
 
                     {/* Investor Type */}
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-1">
-                            Investor Type
-                        </label>
-                        <input
-                            type="text"
-                            value={formData.investor_type}
-                            onChange={(e) => setFormData(prev => ({ ...prev, investor_type: e.target.value }))}
-                            placeholder="e.g., Angel Investor, VC, etc."
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                        />
-                    </div>
+                    <FormField
+                        label="Investor Type"
+                        value={formData.investor_type}
+                        onChange={(e) => setFormData(prev => ({ ...prev, investor_type: e.target.value }))}
+                        placeholder="e.g., Angel Investor, VC, etc."
+                    />
 
                     {/* Bio */}
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-1">
-                            Bio
-                        </label>
-                        <textarea
-                            value={formData.bio}
-                            onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
-                            placeholder="Tell us about your investment focus..."
-                            maxLength={300}
-                            rows={4}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
-                        />
-                        <p className="text-xs text-gray-500 mt-1">
-                            {formData.bio.length}/300 characters
-                        </p>
-                    </div>
+                    <FormField
+                        as="textarea"
+                        label="Bio"
+                        value={formData.bio}
+                        onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
+                        placeholder="Tell us about your investment focus..."
+                        maxLength={300}
+                        rows={4}
+                        helpText={`${formData.bio.length}/300 characters`}
+                    />
 
                     {/* Investment Stages */}
                     <div>
@@ -198,7 +179,7 @@ export default function EditInvestorProfileModal({ profile, onClose, onSuccess }
                                 onChange={(e) => setNewStage(e.target.value)}
                                 onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddStage())}
                                 placeholder="e.g., Seed, Pre-seed..."
-                                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
                             />
                             <button
                                 type="button"
@@ -219,6 +200,7 @@ export default function EditInvestorProfileModal({ profile, onClose, onSuccess }
                                         type="button"
                                         onClick={() => handleRemoveStage(stage)}
                                         className="hover:text-orange-900"
+                                        aria-label={`Remove stage ${stage}`}
                                     >
                                         <X size={14} />
                                     </button>
@@ -239,7 +221,7 @@ export default function EditInvestorProfileModal({ profile, onClose, onSuccess }
                                 onChange={(e) => setNewSector(e.target.value)}
                                 onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddSector())}
                                 placeholder="e.g., AI, Fintech..."
-                                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
                             />
                             <button
                                 type="button"
@@ -260,6 +242,7 @@ export default function EditInvestorProfileModal({ profile, onClose, onSuccess }
                                         type="button"
                                         onClick={() => handleRemoveSector(sector)}
                                         className="hover:text-orange-900"
+                                        aria-label={`Remove sector ${sector}`}
                                     >
                                         <X size={14} />
                                     </button>
@@ -269,65 +252,51 @@ export default function EditInvestorProfileModal({ profile, onClose, onSuccess }
                     </div>
 
                     {/* Contact Preference */}
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-1">
-                            Contact Preference
-                        </label>
-                        <select
-                            value={formData.contact_preference}
-                            onChange={(e) => setFormData(prev => ({ ...prev, contact_preference: e.target.value }))}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                        >
-                            <option value="email">Email</option>
-                            <option value="phone">Phone</option>
-                            <option value="dm">In-app Message</option>
-                        </select>
-                    </div>
+                    <FormField
+                        as="select"
+                        label="Contact Preference"
+                        value={formData.contact_preference}
+                        onChange={(e) => setFormData(prev => ({ ...prev, contact_preference: e.target.value }))}
+                    >
+                        <option value="email">Email</option>
+                        <option value="phone">Phone</option>
+                        <option value="dm">In-app Message</option>
+                    </FormField>
 
                     {/* LinkedIn */}
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-1">
-                            LinkedIn URL
-                        </label>
-                        <input
-                            type="url"
-                            value={formData.linkedin}
-                            onChange={(e) => setFormData(prev => ({ ...prev, linkedin: e.target.value }))}
-                            placeholder="https://linkedin.com/in/username"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                        />
-                    </div>
+                    <FormField
+                        label="LinkedIn URL"
+                        type="url"
+                        value={formData.linkedin}
+                        onChange={(e) => setFormData(prev => ({ ...prev, linkedin: e.target.value }))}
+                        placeholder="https://linkedin.com/in/username"
+                    />
 
                     {/* Website */}
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-1">
-                            Website URL
-                        </label>
-                        <input
-                            type="url"
-                            value={formData.website}
-                            onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
-                            placeholder="https://yourfirm.com"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                        />
-                    </div>
+                    <FormField
+                        label="Website URL"
+                        type="url"
+                        value={formData.website}
+                        onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
+                        placeholder="https://yourfirm.com"
+                    />
 
                     {/* Buttons */}
                     <div className="flex gap-3 pt-4">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 bg-white"
                         >
                             Cancel
                         </button>
-                        <button
+                        <LoadingButton
                             type="submit"
-                            disabled={loading}
-                            className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                            loading={loading}
+                            className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
                         >
-                            {loading ? "Saving..." : "Save Changes"}
-                        </button>
+                            Save Changes
+                        </LoadingButton>
                     </div>
                 </form>
 

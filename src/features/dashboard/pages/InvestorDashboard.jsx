@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import useAuth from "../../../hooks/useAuth";
 import { fetchMyInvestorPosts, deleteInvestorPost } from "../../investor-posts/api/investorPostsApi";
-import { Trash2, Edit, Eye } from "lucide-react";
+import { Trash2, Edit, Eye, PlusCircle } from "lucide-react";
+import EmptyState from "../../../components/EmptyState";
+import LoadingSpinner from "../../../components/LoadingSpinner";
+import toast from 'react-hot-toast';
 
 export default function InvestorDashboard() {
     const { user } = useAuth();
@@ -22,7 +25,7 @@ export default function InvestorDashboard() {
             const data = await fetchMyInvestorPosts();
             setPosts(data);
         } catch (err) {
-            console.error("Failed to load posts", err);
+            toast.error("Failed to load posts");
         } finally {
             setLoading(false);
         }
@@ -33,11 +36,15 @@ export default function InvestorDashboard() {
         try {
             await deleteInvestorPost(id);
             setPosts(prev => prev.filter(p => p.id !== id));
+            toast.success("Post deleted successfully");
         } catch (err) {
-            console.error("Failed to delete post", err);
-            alert("Failed to delete post");
+            toast.error("Failed to delete post");
         }
     };
+
+    if (loading) {
+        return <LoadingSpinner centered />;
+    }
 
     return (
         <div className="max-w-6xl mx-auto p-4 sm:p-6 bg-[#f9f9f9] min-h-screen">
@@ -57,18 +64,14 @@ export default function InvestorDashboard() {
             </div>
 
             {/* CONTENT */}
-            {loading ? (
-                <div className="text-center py-10 text-gray-500">Loading posts...</div>
-            ) : posts.length === 0 ? (
-                <div className="text-center py-10 bg-white rounded-xl border border-gray-200">
-                    <p className="text-gray-500 mb-4">You haven't created any posts yet.</p>
-                    <Link
-                        to="/investor-posts/create"
-                        className="text-orange-600 font-medium hover:underline"
-                    >
-                        Create your first post
-                    </Link>
-                </div>
+            {posts.length === 0 ? (
+                <EmptyState
+                    icon={PlusCircle}
+                    title="No Posts Yet"
+                    message="Start connecting with developers by creating your first investment criteria post."
+                    actionLabel="Create Post"
+                    actionPath="/investor-posts/create"
+                />
             ) : (
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                     {/* Desktop Table Header */}
@@ -92,17 +95,19 @@ export default function InvestorDashboard() {
                                 <div className="col-span-3 text-gray-600">{post.amount_range}</div>
                                 <div className="col-span-2 text-gray-600">{post.saved_count || 0} devs</div>
                                 <div className="col-span-2 flex justify-end gap-3">
-                                    <Link to={`/investor-post/${post.id}`} className="text-gray-400 hover:text-gray-600" title="View">
+                                    <Link
+                                        to={`/investor-post/${post.id}`}
+                                        className="text-gray-400 hover:text-gray-600"
+                                        title="View"
+                                        aria-label={`View ${post.title}`}
+                                    >
                                         <Eye size={18} />
                                     </Link>
-                                    {/* Edit functionality to be added later */}
-                                    {/* <button className="text-blue-400 hover:text-blue-600" title="Edit">
-                    <Edit size={18} />
-                  </button> */}
                                     <button
                                         onClick={() => handleDelete(post.id)}
                                         className="text-red-400 hover:text-red-600"
                                         title="Delete"
+                                        aria-label={`Delete ${post.title}`}
                                     >
                                         <Trash2 size={18} />
                                     </button>

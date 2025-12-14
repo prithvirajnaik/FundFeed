@@ -1,5 +1,6 @@
 import { createContext, useState, useEffect, useContext } from "react";
 import api from "../api/apiClient";
+import toast from 'react-hot-toast';
 
 export const AuthContext = createContext();
 
@@ -87,11 +88,13 @@ export function AuthProvider({ children }) {
       });
 
       await loadSavedPitches();
+      toast.success('Welcome back!');
 
       return { success: true };
     } catch (err) {
-      console.error("Login Error:", err.response?.data);
-      return { success: false, message: "Login failed" };
+      const errorMsg = err.response?.data?.detail || "Invalid email or password";
+      toast.error(errorMsg);
+      return { success: false, message: errorMsg };
     }
   };
 
@@ -114,10 +117,12 @@ export function AuthProvider({ children }) {
       });
 
       await loadSavedPitches();
+      toast.success('Account created successfully!');
       return { success: true };
     } catch (err) {
-      console.error("Register Error:", err.response?.data);
-      return { success: false, message: "Registration failed" };
+      const errorMsg = err.response?.data?.email?.[0] || err.response?.data?.detail || "Registration failed";
+      toast.error(errorMsg);
+      return { success: false, message: errorMsg };
     }
   };
 
@@ -140,7 +145,7 @@ export function AuthProvider({ children }) {
 
       return { success: true };
     } catch (err) {
-      console.error("SavePitch Error:", err.response?.data);
+      toast.error('Failed to save pitch');
       return { success: false };
     }
   };
@@ -163,7 +168,7 @@ export function AuthProvider({ children }) {
 
       return { success: true };
     } catch (err) {
-      console.error("Unsave Error:", err.response?.data);
+      toast.error('Failed to remove from saved');
       return { success: false };
     }
   };
@@ -194,9 +199,10 @@ export function AuthProvider({ children }) {
         return updated;
       });
 
+      toast.success(alreadySaved ? 'Removed from saved' : 'Saved!');
       return { success: true };
     } catch (err) {
-      console.error("ToggleSave Error:", err.response?.data);
+      toast.error('Action failed. Please try again.');
       return { success: false };
     }
   };
@@ -210,6 +216,7 @@ export function AuthProvider({ children }) {
         logout: () => {
           setUser(null);
           localStorage.removeItem("fundfeed_user");
+          toast.success('Logged out successfully');
         },
         loading,
         savePitch,

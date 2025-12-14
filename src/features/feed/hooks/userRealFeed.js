@@ -3,8 +3,10 @@ import api from "../../../api/apiClient";
 
 export default function useRealFeed(search = "", filters = {}) {
   const [feed, setFeed] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
     const params = new URLSearchParams();
     if (search) params.append("search", search);
     if (filters.stage) params.append("stage", filters.stage);
@@ -17,8 +19,11 @@ export default function useRealFeed(search = "", filters = {}) {
       .catch((err) => {
         console.error("Feed load error:", err);
         setFeed([]);
+      })
+      .finally(() => {
+        setLoading(false);
       });
   }, [search, filters]);
 
-  return feed;
+  return { data: feed, loading };
 }

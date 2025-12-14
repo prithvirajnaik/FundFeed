@@ -1,7 +1,9 @@
 import { X, Video, Phone, MapPin, Calendar } from "lucide-react";
 import { useState } from "react";
 import { createRequest } from "../../requests/api/requestsApi";
-import { showSuccess, showError } from "../../../utils/toast";
+import toast from 'react-hot-toast';
+import LoadingButton from "../../../components/LoadingButton";
+import FormField from "../../../components/FormField";
 
 const TIMEZONES = [
   { value: 'America/New_York', label: 'Eastern Time (ET)' },
@@ -36,7 +38,7 @@ export default function ContactModal({ open, onClose, context, recipientName }) 
     e.preventDefault();
 
     if (message.trim().length === 0) {
-      showError("Please enter a message");
+      toast.error("Please enter a message");
       return;
     }
 
@@ -45,7 +47,7 @@ export default function ContactModal({ open, onClose, context, recipientName }) 
       const start = new Date(scheduledStartTime);
       const end = new Date(scheduledEndTime);
       if (end <= start) {
-        showError("End time must be after start time");
+        toast.error("End time must be after start time");
         return;
       }
     }
@@ -74,8 +76,8 @@ export default function ContactModal({ open, onClose, context, recipientName }) 
       }
 
       await createRequest(payload);
-      showSuccess("Request sent successfully!");
-      onClose();
+      toast.success("Request sent successfully!");
+
       // Reset form
       setMessage("");
       setMeetingLink("");
@@ -83,9 +85,10 @@ export default function ContactModal({ open, onClose, context, recipientName }) 
       setScheduledEndTime("");
       setAgenda("");
       setMeetingPlatform("google-meet");
+
+      onClose();
     } catch (err) {
-      console.error("Failed to send request", err);
-      showError(err.response?.data?.detail || "Failed to send request. Please try again.");
+      toast.error(err.response?.data?.detail || "Failed to send request. Please try again.");
     } finally {
       setSending(false);
     }
@@ -110,20 +113,17 @@ export default function ContactModal({ open, onClose, context, recipientName }) 
         <form onSubmit={handleSubmit} className="space-y-5">
 
           {/* Message */}
-          <div>
-            <label className="font-semibold text-gray-800 block mb-2">
-              Message <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              value={message}
-              maxLength={1000}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Introduce yourself and explain your interest…"
-              className="w-full h-32 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-orange-500"
-              required
-            />
-            <p className="text-xs text-gray-500 mt-1">{message.length}/1000 characters</p>
-          </div>
+          <FormField
+            as="textarea"
+            label="Message"
+            required
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="Introduce yourself and explain your interest…"
+            rows={5}
+            maxLength={1000}
+            helpText={`${message.length}/1000 characters`}
+          />
 
           {/* Meeting Platform Selector */}
           <div>
@@ -135,8 +135,8 @@ export default function ContactModal({ open, onClose, context, recipientName }) 
                 type="button"
                 onClick={() => setMeetingPlatform("google-meet")}
                 className={`p-3 border-2 rounded-lg flex flex-col items-center gap-2 transition ${meetingPlatform === "google-meet"
-                    ? "border-orange-500 bg-orange-50"
-                    : "border-gray-200 hover:border-gray-300"
+                  ? "border-orange-500 bg-orange-50"
+                  : "border-gray-200 hover:border-gray-300"
                   }`}
               >
                 <Video size={24} className={meetingPlatform === "google-meet" ? "text-orange-600" : "text-gray-600"} />
@@ -147,8 +147,8 @@ export default function ContactModal({ open, onClose, context, recipientName }) 
                 type="button"
                 onClick={() => setMeetingPlatform("zoom")}
                 className={`p-3 border-2 rounded-lg flex flex-col items-center gap-2 transition ${meetingPlatform === "zoom"
-                    ? "border-orange-500 bg-orange-50"
-                    : "border-gray-200 hover:border-gray-300"
+                  ? "border-orange-500 bg-orange-50"
+                  : "border-gray-200 hover:border-gray-300"
                   }`}
               >
                 <Video size={24} className={meetingPlatform === "zoom" ? "text-orange-600" : "text-gray-600"} />
@@ -159,8 +159,8 @@ export default function ContactModal({ open, onClose, context, recipientName }) 
                 type="button"
                 onClick={() => setMeetingPlatform("phone")}
                 className={`p-3 border-2 rounded-lg flex flex-col items-center gap-2 transition ${meetingPlatform === "phone"
-                    ? "border-orange-500 bg-orange-50"
-                    : "border-gray-200 hover:border-gray-300"
+                  ? "border-orange-500 bg-orange-50"
+                  : "border-gray-200 hover:border-gray-300"
                   }`}
               >
                 <Phone size={24} className={meetingPlatform === "phone" ? "text-orange-600" : "text-gray-600"} />
@@ -171,8 +171,8 @@ export default function ContactModal({ open, onClose, context, recipientName }) 
                 type="button"
                 onClick={() => setMeetingPlatform("in-person")}
                 className={`p-3 border-2 rounded-lg flex flex-col items-center gap-2 transition ${meetingPlatform === "in-person"
-                    ? "border-orange-500 bg-orange-50"
-                    : "border-gray-200 hover:border-gray-300"
+                  ? "border-orange-500 bg-orange-50"
+                  : "border-gray-200 hover:border-gray-300"
                   }`}
               >
                 <MapPin size={24} className={meetingPlatform === "in-person" ? "text-orange-600" : "text-gray-600"} />
@@ -182,121 +182,90 @@ export default function ContactModal({ open, onClose, context, recipientName }) 
           </div>
 
           {/* Meeting Link */}
-          <div>
-            <label className="font-semibold text-gray-800 block mb-2">
-              {meetingPlatform === "phone" ? "Phone Number" :
+          <FormField
+            label={
+              meetingPlatform === "phone" ? "Phone Number" :
                 meetingPlatform === "in-person" ? "Meeting Location" :
-                  "Meeting Link"}
-            </label>
-            <input
-              type={meetingPlatform === "phone" ? "tel" : "text"}
-              value={meetingLink}
-              onChange={(e) => setMeetingLink(e.target.value)}
-              placeholder={
-                meetingPlatform === "phone" ? "+1 (555) 123-4567" :
-                  meetingPlatform === "in-person" ? "123 Main St, City" :
-                    "https://meet.google.com/xxx-xxxx-xxx"
-              }
-              className="w-full border rounded-lg p-3 outline-none focus:ring-2 focus:ring-orange-500"
-            />
-          </div>
+                  "Meeting Link"
+            }
+            type={meetingPlatform === "phone" ? "tel" : "text"}
+            value={meetingLink}
+            onChange={(e) => setMeetingLink(e.target.value)}
+            placeholder={
+              meetingPlatform === "phone" ? "+1 (555) 123-4567" :
+                meetingPlatform === "in-person" ? "123 Main St, City" :
+                  "https://meet.google.com/xxx-xxxx-xxx"
+            }
+          />
 
           {/* Scheduled Meeting Times (shown only if meeting link/location is provided) */}
           {meetingLink.trim() && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-4">
-              <div className="flex items-center gap-2 text-blue-800 font-semib old mb-3">
+              <div className="flex items-center gap-2 text-blue-800 font-semibold mb-3">
                 <Calendar size={20} />
                 <span>Schedule Meeting Time</span>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="font-medium text-gray-800 block mb-2 text-sm">
-                    Start Time
-                  </label>
-                  <input
-                    type="datetime-local"
-                    value={scheduledStartTime}
-                    onChange={(e) => setScheduledStartTime(e.target.value)}
-                    min={new Date().toISOString().slice(0, 16)}
-                    className="w-full border rounded-lg p-2 outline-none focus:ring-2 focus:ring-orange-500"
-                  />
-                </div>
+                <FormField
+                  label="Start Time"
+                  type="datetime-local"
+                  value={scheduledStartTime}
+                  onChange={(e) => setScheduledStartTime(e.target.value)}
+                  min={new Date().toISOString().slice(0, 16)}
+                />
 
-                <div>
-                  <label className="font-medium text-gray-800 block mb-2 text-sm">
-                    End Time
-                  </label>
-                  <input
-                    type="datetime-local"
-                    value={scheduledEndTime}
-                    onChange={(e) => setScheduledEndTime(e.target.value)}
-                    min={scheduledStartTime || new Date().toISOString().slice(0, 16)}
-                    className="w-full border rounded-lg p-2 outline-none focus:ring-2 focus:ring-orange-500"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="font-medium text-gray-800 block mb-2 text-sm">
-                  Timezone
-                </label>
-                <select
-                  value={timezone}
-                  onChange={(e) => setTimezone(e.target.value)}
-                  className="w-full border rounded-lg p-2 outline-none focus:ring-2 focus:ring-orange-500"
-                >
-                  {TIMEZONES.map(tz => (
-                    <option key={tz.value} value={tz.value}>{tz.label}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="font-medium text-gray-800 block mb-2 text-sm">
-                  Meeting Agenda (Optional)
-                </label>
-                <textarea
-                  value={agenda}
-                  onChange={(e) => setAgenda(e.target.value)}
-                  placeholder="What would you like to discuss?"
-                  className="w-full h-20 border rounded-lg p-2 outline-none focus:ring-2 focus:ring-orange-500"
+                <FormField
+                  label="End Time"
+                  type="datetime-local"
+                  value={scheduledEndTime}
+                  onChange={(e) => setScheduledEndTime(e.target.value)}
+                  min={scheduledStartTime || new Date().toISOString().slice(0, 16)}
                 />
               </div>
+
+              <FormField
+                as="select"
+                label="Timezone"
+                value={timezone}
+                onChange={(e) => setTimezone(e.target.value)}
+              >
+                {TIMEZONES.map(tz => (
+                  <option key={tz.value} value={tz.value}>{tz.label}</option>
+                ))}
+              </FormField>
+
+              <FormField
+                as="textarea"
+                label="Meeting Agenda (Optional)"
+                rows={2}
+                value={agenda}
+                onChange={(e) => setAgenda(e.target.value)}
+                placeholder="What would you like to discuss?"
+              />
             </div>
           )}
 
           {/* Preference */}
-          <div>
-            <label className="font-semibold text-gray-800 block mb-2">
-              Contact Preference
-            </label>
-            <select
-              value={preference}
-              onChange={(e) => setPreference(e.target.value)}
-              className="w-full border rounded-lg p-3 outline-none focus:ring-2 focus:ring-orange-500"
-            >
-              <option value="email">Email</option>
-              <option value="phone">Phone</option>
-              <option value="dm">In-app Message</option>
-            </select>
-          </div>
+          <FormField
+            as="select"
+            label="Contact Preference"
+            value={preference}
+            onChange={(e) => setPreference(e.target.value)}
+          >
+            <option value="email">Email</option>
+            <option value="phone">Phone</option>
+            <option value="dm">In-app Message</option>
+          </FormField>
 
           {/* Submit */}
-          <button
+          <LoadingButton
             type="submit"
-            disabled={sending}
-            className="w-full bg-orange-600 text-white py-3 rounded-lg text-lg font-semibold hover:bg-orange-700 disabled:bg-gray-400 transition flex items-center justify-center gap-2"
+            loading={sending}
+            className="w-full bg-orange-600 text-white py-3 rounded-lg text-lg font-semibold hover:bg-orange-700 transition"
           >
-            {sending ? (
-              <>
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                Sending...
-              </>
-            ) : (
-              "Send Message"
-            )}
-          </button>
+            Send Message
+          </LoadingButton>
 
         </form>
 

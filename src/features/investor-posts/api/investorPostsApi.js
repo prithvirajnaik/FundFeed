@@ -39,3 +39,8 @@ export const unsaveInvestorPost = async (id) => {
     const response = await api.delete(`/api/investor-posts/${id}/unsave/`);
     return response.data;
 };
+
+export const getSavedInvestorPosts = async () => {
+    const res = await api.get("/api/investor-posts/saved/");
+    return res.data; // [{ id, post }]
+};

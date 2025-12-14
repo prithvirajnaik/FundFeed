@@ -61,22 +61,47 @@
 // }
 
 
+import { useState } from "react";
 import useUploadForm from "../hooks/useUploadForm";
 import VideoUploader from "../components/VideoUploader";
 import TagInput from "../components/TagInput";
 import PitchFormFields from "../components/PitchFormFields";
 import { uploadPitch } from "../api/uploadApi";
 import { useNavigate } from "react-router-dom";
+import LoadingButton from "../../../components/LoadingButton";
+import toast from 'react-hot-toast';
 
 export default function UploadPitch() {
   const { form, update } = useUploadForm();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+
+  const validate = () => {
+    const newErrors = {};
+    if (!form.video) {
+      toast.error("Please upload a pitch video");
+      return false;
+    }
+    if (!form.title) newErrors.title = "Title is required";
+    if (!form.description) newErrors.description = "Description is required";
+    if (!form.stage) newErrors.stage = "Funding stage is required";
+    if (!form.ask) newErrors.ask = "Funding ask is required";
+
+    if (form.tags.length < 3) {
+      toast.error("Please add at least 3 tags");
+      return false;
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validate()) return;
 
-    if (!form.video) return alert("Upload a pitch video");
-    if (form.tags.length < 3) return alert("Add at least 3 tags");
+    setLoading(true);
 
     const payload = new FormData();
     payload.append("title", form.title);
@@ -84,19 +109,18 @@ export default function UploadPitch() {
     payload.append("funding_stage", form.stage);
     payload.append("ask", form.ask);
     payload.append("video", form.video);
-
-    // Django expects a JSON string for list fields
     payload.append("tags", JSON.stringify(form.tags));
 
     const response = await uploadPitch(payload);
 
     if (!response.success) {
-      alert("Upload failed");
+      toast.error("Upload failed. Please try again.");
+      setLoading(false);
       return;
     }
 
-    alert("Pitch uploaded successfully!");
-    navigate(`/pitch/${response.data.id}`); // redirect to detail page
+    toast.success("Pitch uploaded successfully!");
+    navigate(`/pitch/${response.data.id}`);
   };
 
   return (
@@ -109,16 +133,17 @@ export default function UploadPitch() {
           setVideo={(file) => update("video", file)}
         />
 
-        <PitchFormFields form={form} update={update} />
+        <PitchFormFields form={form} update={update} errors={errors} />
 
         <TagInput tags={form.tags} setTags={(tags) => update("tags", tags)} />
 
-        <button
+        <LoadingButton
           type="submit"
+          loading={loading}
           className="w-full py-3 bg-primary text-white rounded-lg text-lg font-semibold hover:bg-opacity-90"
         >
           Upload Pitch
-        </button>
+        </LoadingButton>
       </form>
     </div>
   );

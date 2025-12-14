@@ -2,11 +2,14 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Upload, X, DollarSign, MapPin, Tag } from "lucide-react";
 import { createInvestorPost } from "../api/investorPostsApi";
+import FormField from "../../../components/FormField";
+import LoadingButton from "../../../components/LoadingButton";
+import toast from 'react-hot-toast';
 
 export default function CreateInvestorPost() {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
+    const [errors, setErrors] = useState({});
 
     const [formData, setFormData] = useState({
         title: "",
@@ -24,6 +27,10 @@ export default function CreateInvestorPost() {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
+        // Clear error when user types
+        if (errors[name]) {
+            setErrors(prev => ({ ...prev, [name]: null }));
+        }
     };
 
     const handleFileChange = (e) => {
@@ -34,10 +41,26 @@ export default function CreateInvestorPost() {
         }
     };
 
+    const validate = () => {
+        const newErrors = {};
+        if (!formData.title) newErrors.title = "Title is required";
+        if (!formData.description) newErrors.description = "Description is required";
+        if (formData.amount_range && !/^[\d\w\s$€£.,-]+$/.test(formData.amount_range)) {
+            newErrors.amount_range = "Invalid format";
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!validate()) {
+            toast.error("Please fill in all required fields correctly.");
+            return;
+        }
+
         setLoading(true);
-        setError(null);
 
         try {
             const data = new FormData();
@@ -51,10 +74,6 @@ export default function CreateInvestorPost() {
             const tagsList = formData.tags.split(",").map(t => t.trim()).filter(Boolean);
             const stagesList = formData.stages.split(",").map(s => s.trim()).filter(Boolean);
 
-            // We need to send these as JSON strings if using FormData with some backends, 
-            // but DRF JSONField usually expects just multiple values or a JSON string.
-            // Let's try appending multiple times for list or sending as JSON string.
-            // Safest for DRF multipart is usually sending a JSON string if the field expects JSON.
             data.append("tags", JSON.stringify(tagsList));
             data.append("stages", JSON.stringify(stagesList));
 
@@ -63,10 +82,10 @@ export default function CreateInvestorPost() {
             }
 
             await createInvestorPost(data);
-            navigate("/investor-posts"); // Redirect to feed
+            toast.success("Investor post created successfully!");
+            navigate("/investor-posts");
         } catch (err) {
-            console.error("Failed to create post", err);
-            setError("Failed to create post. Please try again.");
+            toast.error("Failed to create post. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -77,13 +96,7 @@ export default function CreateInvestorPost() {
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Investor Post</h1>
             <p className="text-gray-600 mb-8">Share your investment criteria to attract the right startups.</p>
 
-            {error && (
-                <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6">
-                    {error}
-                </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100">
+            <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100" noValidate>
 
                 {/* Logo Upload */}
                 <div>
@@ -104,111 +117,87 @@ export default function CreateInvestorPost() {
                 </div>
 
                 {/* Title */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Post Title</label>
-                    <input
-                        type="text"
-                        name="title"
-                        required
-                        placeholder="e.g. Looking for Seed Stage Fintech"
-                        value={formData.title}
-                        onChange={handleChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all"
-                    />
-                </div>
+                <FormField
+                    label="Post Title"
+                    name="title"
+                    value={formData.title}
+                    onChange={handleChange}
+                    placeholder="e.g. Looking for Seed Stage Fintech"
+                    error={errors.title}
+                    required
+                />
 
                 {/* Description */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                    <textarea
-                        name="description"
-                        required
-                        rows={5}
-                        placeholder="Describe your investment thesis, what you are looking for, and what you offer..."
-                        value={formData.description}
-                        onChange={handleChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all"
-                    />
-                </div>
+                <FormField
+                    as="textarea"
+                    label="Description"
+                    name="description"
+                    value={formData.description}
+                    onChange={handleChange}
+                    rows={5}
+                    placeholder="Describe your investment thesis, what you are looking for, and what you offer..."
+                    error={errors.description}
+                    required
+                />
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Amount Range */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Check Size Range</label>
-                        <div className="relative">
-                            <DollarSign size={16} className="absolute left-3 top-3 text-gray-400" />
-                            <input
-                                type="text"
-                                name="amount_range"
-                                placeholder="e.g. $50k - $200k"
-                                value={formData.amount_range}
-                                onChange={handleChange}
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all"
-                            />
-                        </div>
+                    <div className="relative">
+                        <FormField
+                            label="Check Size Range"
+                            name="amount_range"
+                            value={formData.amount_range}
+                            onChange={handleChange}
+                            placeholder="e.g. $50k - $200k"
+                            error={errors.amount_range}
+                            helpText="Optional"
+                        />
                     </div>
 
                     {/* Location */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Location Preference</label>
-                        <div className="relative">
-                            <MapPin size={16} className="absolute left-3 top-3 text-gray-400" />
-                            <input
-                                type="text"
-                                name="location"
-                                placeholder="e.g. US, Remote, India"
-                                value={formData.location}
-                                onChange={handleChange}
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all"
-                            />
-                        </div>
+                    <div className="relative">
+                        <FormField
+                            label="Location Preference"
+                            name="location"
+                            value={formData.location}
+                            onChange={handleChange}
+                            placeholder="e.g. US, Remote, India"
+                            helpText="Optional"
+                        />
                     </div>
                 </div>
 
                 {/* Tags & Stages */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Tags (comma separated)</label>
-                        <div className="relative">
-                            <Tag size={16} className="absolute left-3 top-3 text-gray-400" />
-                            <input
-                                type="text"
-                                name="tags"
-                                placeholder="e.g. AI, SaaS, B2B"
-                                value={formData.tags}
-                                onChange={handleChange}
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all"
-                            />
-                        </div>
-                    </div>
+                    <FormField
+                        label="Tags (comma separated)"
+                        name="tags"
+                        value={formData.tags}
+                        onChange={handleChange}
+                        placeholder="e.g. AI, SaaS, B2B"
+                    />
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Stages (comma separated)</label>
-                        <input
-                            type="text"
-                            name="stages"
-                            placeholder="e.g. Pre-Seed, Seed, Series A"
-                            value={formData.stages}
-                            onChange={handleChange}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all"
-                        />
-                    </div>
+                    <FormField
+                        label="Stages (comma separated)"
+                        name="stages"
+                        value={formData.stages}
+                        onChange={handleChange}
+                        placeholder="e.g. Pre-Seed, Seed, Series A"
+                    />
                 </div>
 
                 {/* Contact Preference */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Contact Preference</label>
-                    <select
-                        name="contact_preference"
-                        value={formData.contact_preference}
-                        onChange={handleChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all bg-white"
-                    >
-                        <option value="email">Email</option>
-                        <option value="phone">Phone</option>
-                        <option value="dm">Direct Message</option>
-                    </select>
-                </div>
+                <FormField
+                    as="select"
+                    label="Contact Preference"
+                    name="contact_preference"
+                    value={formData.contact_preference}
+                    onChange={handleChange}
+                >
+                    <option value="email">Email</option>
+                    <option value="phone">Phone</option>
+                    <option value="dm">Direct Message</option>
+                </FormField>
 
                 {/* Submit Button */}
                 <div className="pt-4 flex justify-end gap-4">
@@ -219,13 +208,13 @@ export default function CreateInvestorPost() {
                     >
                         Cancel
                     </button>
-                    <button
+                    <LoadingButton
                         type="submit"
-                        disabled={loading}
-                        className="px-6 py-2 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+                        loading={loading}
+                        className="px-6 py-2 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all"
                     >
-                        {loading ? "Creating..." : "Create Post"}
-                    </button>
+                        Create Post
+                    </LoadingButton>
                 </div>
 
             </form>

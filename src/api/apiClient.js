@@ -1,27 +1,24 @@
 import axios from "axios";
-console.log("🔥 apiClient loaded");
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL|| "http://localhost:8000",   // Django backend
+  baseURL: import.meta.env.VITE_API_URL || "http://127.0.0.1:8000",
 });
 
 // Automatically attach access token
 api.interceptors.request.use((config) => {
   const stored = localStorage.getItem("fundfeed_user");
-  console.log("🔥 INTERCEPTOR RUNNING for:", config.url);
 
   if (stored) {
     const user = JSON.parse(stored);
-    console.log("🔥 TOKEN FOUND in localStorage:", user.access);
-
     config.headers.Authorization = `Bearer ${user.access}`;
-    console.log("🔥 ATTACHED HEADER:", config.headers.Authorization);
-  } else {
-    console.log("⚠️ No stored user");
+  }
+
+  // Dev-only logging (without sensitive data)
+  if (import.meta.env.DEV) {
+    console.log(`API Request: ${config.method?.toUpperCase()} ${config.url}`);
   }
 
   return config;
 });
-
 
 export default api;

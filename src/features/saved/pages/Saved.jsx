@@ -4,15 +4,38 @@ import PitchCard from "../../feed/components/PitchCard";
 import InvestorPostCard from "../../investor-posts/components/InvestorPostCard";
 import useSavedPitches from "../hooks/useSavedPitches";
 import api from "../../../api/apiClient";
-import { Trash2 } from "lucide-react";
+import { Trash2, Bookmark, FolderOpen } from "lucide-react";
 import { unsaveInvestorPost } from "../../investor-posts/api/investorPostsApi";
+import EmptyState from "../../../components/EmptyState";
+import LoadingSpinner from "../../../components/LoadingSpinner";
+import toast from "react-hot-toast";
 
 export default function Saved() {
   const { user, removeSavedPitch } = useAuth();
+
+  /** ---------------- SAVED PITCHES ---------------- */
   const savedPitches = useSavedPitches();
+  const [localSavedPitches, setLocalSavedPitches] = useState([]);
+
+  useEffect(() => {
+    setLocalSavedPitches(savedPitches);
+  }, [savedPitches]);
+
+  const handleRemovePitch = async (pitchId) => {
+    try {
+      await removeSavedPitch(pitchId);
+      setLocalSavedPitches(prev =>
+        prev.filter(p => p.id !== pitchId)
+      );
+      toast.success("Removed from saved pitches");
+    } catch {
+      toast.error("Failed to remove pitch");
+    }
+  };
+
+  /** ---------------- SAVED POSTS ---------------- */
   const [savedPosts, setSavedPosts] = useState([]);
   const [loadingPosts, setLoadingPosts] = useState(true);
-  const [tab, setTab] = useState("pitches");
 
   useEffect(() => {
     if (user) {
@@ -21,12 +44,12 @@ export default function Saved() {
   }, [user]);
 
   const fetchSavedPosts = async () => {
+    setLoadingPosts(true);
     try {
-      const response = await api.get("/api/investor-posts/saved/");
-      const posts = response.data.map(item => item.post);
-      setSavedPosts(posts);
-    } catch (err) {
-      console.error("Failed to fetch saved posts", err);
+      const res = await api.get("/api/investor-posts/saved/");
+      setSavedPosts(res.data.map(item => item.post));
+    } catch {
+      toast.error("Failed to load saved posts");
     } finally {
       setLoadingPosts(false);
     }
@@ -36,10 +59,14 @@ export default function Saved() {
     try {
       await unsaveInvestorPost(postId);
       setSavedPosts(prev => prev.filter(p => p.id !== postId));
-    } catch (err) {
-      console.error("Failed to unsave post", err);
+      toast.success("Removed from saved posts");
+    } catch {
+      toast.error("Failed to remove post");
     }
   };
+
+  /** ---------------- UI STATE ---------------- */
+  const [tab, setTab] = useState("pitches");
 
   return (
     <div className="max-w-5xl mx-auto p-4 sm:p-6">
@@ -47,83 +74,77 @@ export default function Saved() {
 
       {/* TABS */}
       <div className="flex gap-4 mb-8 border-b border-gray-200 pb-1">
-        <button
-          className={`px-4 py-2 text-sm font-medium transition-colors relative ${tab === "pitches" ? "text-orange-600" : "text-gray-500 hover:text-gray-700"
-            }`}
-          onClick={() => setTab("pitches")}
-        >
-          Saved Pitches
-          {tab === "pitches" && (
-            <span className="absolute bottom-[-5px] left-0 w-full h-0.5 bg-orange-600 rounded-t-full"></span>
-          )}
-        </button>
-
-        <button
-          className={`px-4 py-2 text-sm font-medium transition-colors relative ${tab === "posts" ? "text-orange-600" : "text-gray-500 hover:text-gray-700"
-            }`}
-          onClick={() => setTab("posts")}
-        >
-          Saved Investor Posts
-          {tab === "posts" && (
-            <span className="absolute bottom-[-5px] left-0 w-full h-0.5 bg-orange-600 rounded-t-full"></span>
-          )}
-        </button>
+        {["pitches", "posts"].map(t => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className={`px-4 py-2 text-sm font-medium relative ${tab === t ? "text-orange-600" : "text-gray-500 hover:text-gray-700"
+              }`}
+          >
+            {t === "pitches" ? "Saved Pitches" : "Saved Investor Posts"}
+            {tab === t && (
+              <span className="absolute bottom-[-5px] left-0 w-full h-0.5 bg-orange-600" />
+            )}
+          </button>
+        ))}
       </div>
 
       {/* CONTENT */}
-      <div>
-        {/* SAVED PITCHES TAB */}
-        {tab === "pitches" && (
-          <div>
-            {savedPitches.length === 0 ? (
-              <div className="text-center py-12 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                <p className="text-gray-500">You haven't saved any pitches yet.</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-5">
-                {savedPitches.map((pitch) => (
-                  <div key={pitch.id} className="relative">
-                    <div className="relative scale-[0.90] sm:scale-[0.85] lg:scale-[0.80] origin-top-left">
-                      <PitchCard pitch={pitch} />
-                      <button
-                        onClick={() => removeSavedPitch(pitch.id)}
-                        className="absolute top-3 right-3 bg-black/60 text-white p-2 rounded-full hover:bg-black/80 transition"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+      {tab === "pitches" && (
+        <>
+          {localSavedPitches.length === 0 ? (
+            <EmptyState
+              icon={Bookmark}
+              title="No saved pitches yet"
+              message="Pitches you save will appear here."
+              actionLabel="Explore Pitches"
+              actionPath="/feed"
+            />
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              {localSavedPitches.map(pitch => (
+                <div key={pitch.id} className="relative">
+                  <PitchCard pitch={pitch} />
+                  <button
+                    onClick={() => handleRemovePitch(pitch.id)}
+                    className="absolute top-3 right-3 bg-black/70 text-white p-2 rounded-full hover:bg-black"
+                    title="Remove from saved"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
 
-        {/* SAVED POSTS TAB */}
-        {tab === "posts" && (
-          <div>
-            {loadingPosts ? (
-              <div className="text-center py-12">Loading...</div>
-            ) : savedPosts.length === 0 ? (
-              <div className="text-center py-12 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                <p className="text-gray-500">You haven't saved any investor posts yet.</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
-                {savedPosts.map((post) => (
-                  <div key={post.id} className="relative group">
-                    <InvestorPostCard
-                      post={post}
-                      saved={true}
-                      onSave={() => handleUnsavePost(post.id)}
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+      {tab === "posts" && (
+        <>
+          {loadingPosts ? (
+            <LoadingSpinner centered />
+          ) : savedPosts.length === 0 ? (
+            <EmptyState
+              icon={FolderOpen}
+              title="No saved investor posts"
+              message="Investor posts you save will appear here."
+              actionLabel="Explore Posts"
+              actionPath="/investor-posts"
+            />
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              {savedPosts.map(post => (
+                <InvestorPostCard
+                  key={post.id}
+                  post={post}
+                  saved
+                  onUnsave={() => handleUnsavePost(post.id)}
+                />
+              ))}
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }
