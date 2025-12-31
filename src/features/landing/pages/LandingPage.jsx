@@ -71,13 +71,13 @@ export default function LandingPage() {
             </section>
 
             {/* STATISTICS (Simple Bar) */}
-            <section className="py-16 bg-gray-50 border-t border-gray-200">
+            {/* <section className="py-16 bg-gray-50 border-t border-gray-200">
                 <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-around items-center gap-8 text-center">
                     <Stat number="50+" label="Active Investors" />
                     <Stat number="200+" label="Innovative Pitches" />
                     <Stat number="$5M+" label="Potential Funding" />
                 </div>
-            </section>
+            </section> */}
 
             {/* FOOTER */}
             <footer className="py-10 bg-white border-t border-gray-200 text-center">
