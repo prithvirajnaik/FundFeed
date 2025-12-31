@@ -10,7 +10,7 @@ export default function ProfileHeader({ profile, isOwner, onEdit }) {
         <div className="relative">
           <div className="w-32 h-32 md:w-40 md:h-40 rounded-full p-1 bg-gradient-to-tr from-yellow-400 to-orange-600 shadow-lg">
             <img
-              src={import.meta.env.VITE_API_URL + profile.avatar}
+              src={profile.avatar}
               className="w-full h-full rounded-full object-cover border-4 border-white shadow-md"
               alt={profile.name}
             />
