@@ -99,7 +99,7 @@ export default function CreateInvestorPost() {
             <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100" noValidate>
 
                 {/* Logo Upload */}
-                <div>
+                {/* <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Firm Logo (Optional)</label>
                     <div className="flex items-center gap-4">
                         <div className="w-20 h-20 bg-gray-100 rounded-xl flex items-center justify-center overflow-hidden border border-gray-200">
@@ -114,7 +114,7 @@ export default function CreateInvestorPost() {
                             <input type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
                         </label>
                     </div>
-                </div>
+                </div> */}
 
                 {/* Title */}
                 <FormField

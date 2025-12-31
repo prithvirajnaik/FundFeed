@@ -12,7 +12,7 @@ export default function InvestorPostCard({
   const goToPost = () => {
     navigate(`/investor-post/${post.id}`);
   };
-
+  console.log(post.logo_url)
   return (
     <div
       onClick={goToPost}
