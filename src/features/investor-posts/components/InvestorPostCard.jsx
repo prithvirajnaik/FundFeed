@@ -25,11 +25,11 @@ export default function InvestorPostCard({
     >
       {/* HEADER */}
       <div className="flex items-center gap-3">
-        <img
+        {/* <img
           src={post.logo_url}
           className="w-14 h-14 rounded-lg object-cover bg-gray-200"
           alt="logo"
-        />
+        /> */}
 
         <div className="flex-1">
           <h3 className="font-semibold text-[#0f0f0f] text-base line-clamp-1">
