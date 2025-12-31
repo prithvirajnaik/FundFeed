@@ -6,6 +6,8 @@ import Navbar from "./components/Navbar";
 import BottomNav from "./components/BottomNav";
 import ProtectedRoute from "./components/ProtectedRoute";
 
+import LandingPage from "./features/landing/pages/LandingPage";
+
 import Login from "./features/auth/pages/Login";
 import Register from "./features/auth/pages/Register";
 
@@ -59,6 +61,7 @@ function App() {
         <div className="pb-14">
           <Routes>
             {/* Public routes */}
+            <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
 
