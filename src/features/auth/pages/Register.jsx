@@ -22,8 +22,17 @@ export default function Register() {
     if (!form.email) newErrors.email = "Email is required";
     else if (!/\S+@\S+\.\S+/.test(form.email)) newErrors.email = "Invalid email format";
 
-    if (!form.password) newErrors.password = "Password is required";
-    else if (form.password.length < 6) newErrors.password = "Password must be at least 6 characters";
+    if (!form.password) {
+      newErrors.password = "Password is required";
+    } else {
+      if (form.password.length < 8) {
+        newErrors.password = "Password must be at least 8 characters";
+      } else if (!/[A-Z]/.test(form.password)) {
+        newErrors.password = "Password must contain at least one uppercase letter";
+      } else if (!/[0-9]/.test(form.password)) {
+        newErrors.password = "Password must contain at least one number";
+      }
+    }
 
     if (!role) newErrors.role = "Please select a role";
 
@@ -108,8 +117,8 @@ export default function Register() {
           loading={loading}
           disabled={!role}
           className={`w-full py-2 rounded-lg mt-5 ${role
-              ? "bg-primary text-white hover:bg-opacity-90"
-              : "bg-gray-300 cursor-not-allowed"
+            ? "bg-primary text-white hover:bg-opacity-90"
+            : "bg-gray-300 cursor-not-allowed"
             }`}
         >
           Register

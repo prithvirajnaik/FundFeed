@@ -60,11 +60,11 @@ export default function InvestorPostDetail() {
 
         {/* HEADER */}
         <div className="flex gap-4 items-start">
-          <img
+          {/* <img
             src={post.logo_url || post.investor?.avatar || "https://via.placeholder.com/150"}
             className="w-16 h-16 rounded-xl object-cover bg-gray-100 border border-gray-200"
             alt="logo"
-          />
+          /> */}
           <div className="flex-1">
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">
               {post.investor?.name || "Investor"}
